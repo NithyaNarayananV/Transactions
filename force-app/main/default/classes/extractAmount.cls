@@ -1,7 +1,7 @@
 //public with sharing class extractAmount {
  //   public extractAmount() {
-        public class extractAmount {  // From VS Code - change 1
-            public static List<Decimal> amountExtraction(String mailBody, Integer PositionRs, Decimal AmountValue){
+        public class ExtractAmount {  // From VS Code - change 1
+            public static List<Decimal> amountExtraction(String mailBody, Integer positionRs, Decimal amountValue){
                 /*
                  * if(mailBody.contains('Rs.')==true)
                 {
@@ -10,12 +10,12 @@
             */            
                 integer i=0;
                 
-                for( i= PositionRs; i<PositionRs+10; i++)
+                for( i= positionRs; i<positionRs+10; i++)
                 {
                     System.debug(mailBody.charAt(i) +' = ' +String.fromCharArray( new List<integer> { mailBody.charAt(i) } ));
                     //44 = , //46 = . //48 = 0  //57 = 9
                     if(mailBody.charAt(i)==44)
-                        continue;
+                        {continue;}
                     if(mailBody.charAt(i)>47 && mailBody.charAt(i)<58)
                     {
                         AmountValue*=10;
