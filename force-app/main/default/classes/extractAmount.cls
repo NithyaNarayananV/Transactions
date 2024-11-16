@@ -1,6 +1,6 @@
 //public with sharing class extractAmount {
  //   public extractAmount() {
-        public class extractAmount {  // From VS Code
+        public class extractAmount {  // From VS Code - change 1
             public static List<Decimal> amountExtraction(String mailBody, Integer PositionRs, Decimal AmountValue){
                 /*
                  * if(mailBody.contains('Rs.')==true)
