@@ -2,14 +2,15 @@ trigger onCaseRecordCreation on Case (after insert) {
     Case c = [Select Id, Subject, CaseNumber,SuppliedPhone, Comments, Description from Case where Id IN :Trigger.new];
     String mailBody = ''+c.get('Description');
     //System.debug(mailBody);
-  //List<String> bodyList = mailBody.split(',');
+    //List<String> bodyList = mailBody.split(',');
     //System.debug(bodyList);
-  //List<Case> clist = [Select Id, Subject, CaseNumber, Description from Case];
-  Boolean WeeklyBalance = False;
-    Integer PositionRs = -1, i, PositionVPA;
+    //List<Case> clist = [Select Id, Subject, CaseNumber, Description from Case];
+    Boolean WeeklyBalance = False;
+    Integer PositionRs = -1, i, PositionVPA,PositionRN;
     Decimal AmountValue=0.0;
     String UPIid='null';
     String TxnType='null';
+    String RefNo='000';
     //for (case c:clist){
     AmountValue=0; 
     PositionVPA = -1;
@@ -82,12 +83,26 @@ trigger onCaseRecordCreation on Case (after insert) {
         WeeklyBalance = false;
         PositionVPA = mailBody.indexOf('VPA');
         PositionVPA+=4;        
-        while(mailBody.charAt(PositionVPA) !=32)
-        { if(mailBody.charAt(PositionVPA) ==10)
+        while(mailBody.charAt(PositionVPA) !=32)    // Its a SPACE char
+        { if(mailBody.charAt(PositionVPA) ==10)     // New Line Char
             break;
             UPIid+=String.fromCharArray( new List<integer> { mailBody.charAt(PositionVPA) } );    
             PositionVPA+=1;
         }
+    }
+    //need to extract the Reference Number from the Email
+
+    // Reference Number Extracition END!
+    if(mailBody.contains('reference number is')==true){
+        PositionRN = mailBody.indexOf('reference number is');
+        PositionRN+=20;
+        while(mailBody.charAt(PositionRN) !=32 && mailBody.charAt(PositionRN) !=46)
+        { if(mailBody.charAt(PositionRN) ==10)
+            break;
+            RefNo+=String.fromCharArray( new List<integer> { mailBody.charAt(PositionRN) } );    
+            PositionRN+=1;
+        }
+        System.debug('Reference No : '+RefNo);
     }
     //UPI END
     if (WeeklyBalance)
@@ -101,14 +116,15 @@ trigger onCaseRecordCreation on Case (after insert) {
     //Adding the Account link to the transactinos 
     /*Account  001NS00000beezpYAA  XX0690
       Account  001NS00000behFTYAY  XX1686*/
-     if(mailBody.contains('XX0690')==true || mailBody.contains('**0690')==true )
+    if(mailBody.contains('XX0690')==true || mailBody.contains('**0690')==true )
         txn.BankAccount__c ='001NS00000beezpYAA';
     else if(mailBody.contains('XX1686')==true || mailBody.contains('**1686')==true )
         txn.BankAccount__c ='001NS00000behFTYAY';
-  txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid ;
+    txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid ;
     txn.Paid_Date__c = System.today();
     txn.Rent_Amount__c = AmountValue;
     txn.UPI_ID__c = UPIid;    
+    txn.RefNo__c = RefNo;//RefNo__c
     txn.RentMonth__c = System.today();
     txn.Description__C = c.CaseNumber;
     if (TxnType == 'Cr') txn.Type__c = 'Income';// if its Credited - Checkbox will be Checked!

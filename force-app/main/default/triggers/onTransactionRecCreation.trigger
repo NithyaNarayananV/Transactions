@@ -47,7 +47,7 @@ Ref No :421248693162 | 0000421248693162
                 while(Txn.Description__C.charAt(PositionFdash) !=45 || Txn.Description__C.charAt(PositionLdash) !=45)
                 { 
                     if ( Txn.Description__C.charAt(PositionFdash)!=45)PositionFdash-=1;                        
-        if ( Txn.Description__C.charAt(PositionLdash)!=45)PositionLdash+=1;  
+                    if ( Txn.Description__C.charAt(PositionLdash)!=45)PositionLdash+=1;  
                 }  
                 Txn.UPI_ID__c = Txn.Description__C.substring(PositionFdash+1,PositionLdash);               
                 UpiTemp = Txn.Description__C.substring(PositionFdash+1,PositionAt);
@@ -75,16 +75,19 @@ Ref No :421248693162 | 0000421248693162
                 System.debug('Txn Updated');
             }                
             else{        
-                List<contact> Con = [Select Id, Description, Fax, HomePhone, OtherPhone, Phone, AssistantPhone from contact];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+                //string LikeTemp = '\'%'+UpiTemp+'%\'';
+                List<contact> Con = [Select Id, Description from contact];// where Description LIKE :LikeTemp ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
                 for (Contact C : Con){
                     //if (C.Fax == Txn.UPI_ID__c || C.HomePhone == Txn.UPI_ID__c || C.OtherPhone == Txn.UPI_ID__c || C.Phone == Txn.UPI_ID__c || C.AssistantPhone == Txn.UPI_ID__c){
                     //for (String D : C.Description )
+                    UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@')):UpiTemp;
                     if(C.Description!=null)
                         if(C.Description.contains(UpiTemp)==true)
-                        {    Txn.Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
+                        {    
+                            Txn.Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
                             IsContactTagged = true;
                             Update Txn;
-                            System.debug('Txn Updated | '+C.Description+' || '+UpiTemp);
+                            System.debug('Txn Updated | '+C.Description+' || '+UpiTemp+' || Full =  \\ '+ Txn.UPI_ID__c);
                             //to update amount field in contact
                             if(Txn.Type__c == 'Income')                                 
                                 ContactAmountUpdation.AmountUpdate2Contact( ''+C.Id, Txn.Rent_Amount__c, 0);
