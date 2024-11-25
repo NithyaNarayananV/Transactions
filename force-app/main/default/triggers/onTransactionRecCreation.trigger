@@ -107,9 +107,9 @@ Ref No :421248693162 | 0000421248693162
                 system.debug('Contact Details will be added to the Transaction record.');
                 Txn.Contact__c = ''+Cnew.Id;// Contact Details is added to the Transaction record.
                 if(Txn.Type__c == 'Income')                                 
-                    ContactAmountUpdation.AmountUpdate2Contact( ''+C.Id, Txn.Rent_Amount__c, 0);
+                    ContactAmountUpdation.AmountUpdate2Contact( ''+Cnew.Id, Txn.Rent_Amount__c, 0);
                 else if(Txn.Type__c == 'Expense')                                 
-                    ContactAmountUpdation.AmountUpdate2Contact( C.Id, 0,Txn.Rent_Amount__c);
+                    ContactAmountUpdation.AmountUpdate2Contact( Cnew.Id, 0,Txn.Rent_Amount__c);
                             
                 if(Txn.Contact__c == null)
                 {

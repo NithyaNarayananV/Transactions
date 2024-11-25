@@ -90,6 +90,21 @@ trigger onCaseRecordCreation on Case (after insert) {
             PositionVPA+=1;
         }
     }
+    // Need to create a new method for Account to Account transaction where the UPI id is not present so the contact is not getting tagged.
+    //account **0690 to account
+    else if(mailBody.contains('account **0690 to account')==true){
+        WeeklyBalance = false;
+        PositionVPA = mailBody.indexOf('account **0690 to account');
+        PositionVPA+=26;        
+        while(mailBody.charAt(PositionVPA) !=32)    // Its a SPACE char
+        { if(mailBody.charAt(PositionVPA) ==10)     // New Line Char
+            break;
+            UPIid+=String.fromCharArray( new List<integer> { mailBody.charAt(PositionVPA) } );    
+            PositionVPA+=1;
+        }
+    }
+
+
     //need to extract the Reference Number from the Email
 
     // Reference Number Extracition END!
