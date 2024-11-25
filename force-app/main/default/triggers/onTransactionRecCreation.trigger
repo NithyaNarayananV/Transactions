@@ -80,7 +80,10 @@ Ref No :421248693162 | 0000421248693162
                 for (Contact C : Con){
                     //if (C.Fax == Txn.UPI_ID__c || C.HomePhone == Txn.UPI_ID__c || C.OtherPhone == Txn.UPI_ID__c || C.Phone == Txn.UPI_ID__c || C.AssistantPhone == Txn.UPI_ID__c){
                     //for (String D : C.Description )
+                    if (Txn.UPI_ID__c.contains('@'))
                     UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@')):UpiTemp;
+                    else
+                    UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c:UpiTemp;
                     if(C.Description!=null)
                         if(C.Description.contains(UpiTemp)==true)
                         {    
