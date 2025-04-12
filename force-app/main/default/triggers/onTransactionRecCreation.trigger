@@ -133,22 +133,34 @@ Ref No :421248693162 | 0000421248693162
             {system.debug('Contact is NUll');}
             else 
                 createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
-            List<Case> Cc = [Select CaseNumber, Status from case ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
-            system.debug(CC);
-            for(Case c : Cc){
+            try{
+                Case C = [Select CaseNumber, Status from case where CaseNumber = :Txn.Description__C ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+                system.debug(c);
+                //for(Case c : Cc){
+                
                 if (c.CaseNumber == Txn.Description__C){
                     c.Status = 'Closed';
                     IsContactTagged= true;
                     System.debug(c.Status + '  | This record should be in Closed state');
+                    update c;
                     //If Case is Closed, then it can be deleted for storage saving.
-                                        
+                    if (c.status == 'Closed')
+                        masterFuture.deleteCase(''+c.id);                    
                     //c.IsDeleted = true;
                     //System.debug('Case Deleted');
                     //delete  c;
-                    update c;
-                    break;
+                    //break;
+                    //}
                 }
             }
+            catch (DmlException e) {
+                System.debug('Error : Case detilas issue ' + e.getMessage());
+                //if error - status should be escalated
+                //c.status = 'Escalated';
+                //c.Description = '< Transaction Record Could not be Created. Error Meassage : '+ e.getMessage() +'  > ' + c.Description;
+                //update c;
+            }
+                
             //update Cc;
             //System.debug('CC Update');
         }

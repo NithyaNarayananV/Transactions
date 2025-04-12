@@ -1,8 +1,9 @@
-public class createRecord_New {
-    //@future
-    /*
-     * public static void testMethod1(Transaction__c Txn){
+public class masterFuture{
+    /* Big Object
+    @future  
+    public static void testMethod1(Transaction__c Txn){
         
+
         List<Transaction_BigData__b> BtxnL = new List<Transaction_BigData__b>();
         
         //for (Transaction__c txn : TxnList) {        
@@ -16,8 +17,16 @@ public class createRecord_New {
         if (!BtxnL.isEmpty()) {
             Database.insertImmediate(BtxnL);
         }
-    
+           
+    } */
+   @future
+    public static void deleteCase(String cId){
+        system.debug('deleteCase called');
+        Case caseDelete = [SELECT Id FROM Case WHERE Id = :cId];
+        system.debug('caseDelete = '+caseDelete);
+        system.debug('caseDelete.Id = '+caseDelete.Id);        
+        delete caseDelete;
+        system.debug('caseDelete deleted');
     }
-*/
 
 }

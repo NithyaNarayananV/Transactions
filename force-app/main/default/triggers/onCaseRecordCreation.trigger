@@ -152,20 +152,17 @@ trigger onCaseRecordCreation on Case (after insert) {
         //System.debug('txn record created successfully.');
         c.Description = '< Transaction Record Created Successfully.  >' + c.Description;
         update c;
-
         insert txn;
-        //After inserting Txn, case status will be updated in OnTransactionRecCreation trigger.
-        if (c.status == 'Closed')
-            delete c;
-        //if (IsContactTagged)
-        //    c.status = 'Closed';        
+        
+    
+        //    ;        
         //if no error - status should be closed Status        
     } catch (DmlException e) {
         //System.debug('An error occurred: ' + e.getMessage());
         //if error - status should be escalated
         c.status = 'Escalated';
         c.Description = '< Transaction Record Could not be Created. Error Meassage : '+ e.getMessage() +'  > ' + c.Description;
-      update c;
+        update c;
     }
     
     /* Moving the below part to On txn record creation trigger for more customization
@@ -206,50 +203,3 @@ trigger onCaseRecordCreation on Case (after insert) {
  Account  001NS00000behFTYAY  XX1686
 */
 // Need to write a scheduled apex call, which executes weekly and deletes 5+days older closed cases - so we can save some storage in salesforce
-
-
-global class UpdateAccountStatusBatch implements Database.Batchable<SObject>, Database.Stateful {
-
-    // Member variable to keep track of the number of records processed
-    global Integer processedCount = 0;
-
-    // Start method to collect records to be processed
-    global Database.QueryLocator start(Database.BatchableContext BC) {
-        // Query to select Accounts with Status 'Pending'
-        return Database.getQueryLocator('SELECT Id, Status__c FROM Account WHERE Status__c = \'Pending\'');
-    }
-
-    // Execute method to process each batch of records
-    global void execute(Database.BatchableContext BC, List<Account> scope) {
-        // Iterate through each account in the batch and update its status
-        for (Account acc : scope) {
-            acc.Status__c = 'Active';
-        }
-        
-        // Try to update the records and handle any errors
-        try {
-            update scope;
-            processedCount += scope.size(); // Update the processed count
-        } catch (Exception e) {
-            // Handle the exception (log error, send email, etc.)
-            System.debug('Error updating records: ' + e.getMessage());
-        }
-    }
-
-    // Finish method for post-processing tasks
-    global void finish(Database.BatchableContext BC) {
-        // Send a confirmation email after the batch job completes
-        Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-        String[] toAddresses = new String[] {'admin@example.com'};
-        mail.setToAddresses(toAddresses);
-        mail.setSubject('Batch Job Complete');
-        mail.setPlainTextBody('The batch job has completed successfully. Number of records processed: ' + processedCount);
-        Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-        
-        // Log the result
-        System.debug('Batch job completed successfully. Number of records processed: ' + processedCount);
-    }
-}
-
-
-
