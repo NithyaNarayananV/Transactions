@@ -130,10 +130,10 @@ Ref No :421248693162 | 0000421248693162
             
             //Call the method in TargetClass and pass parameters
             if(Txn.Contact__c == null)
-            {system.debug('Contact is NUll');}                
-    else 
-            createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
-            List<Case> Cc = [Select CaseNumber, Status, IsDeleted from case ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+            {system.debug('Contact is NUll');}
+            else 
+                createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
+            List<Case> Cc = [Select CaseNumber, Status from case ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
             system.debug(CC);
             for(Case c : Cc){
                 if (c.CaseNumber == Txn.Description__C){
@@ -143,8 +143,9 @@ Ref No :421248693162 | 0000421248693162
                     //If Case is Closed, then it can be deleted for storage saving.
                                         
                     //c.IsDeleted = true;
-                    System.debug('Case Deleted');
-                    delete  c;
+                    //System.debug('Case Deleted');
+                    //delete  c;
+                    update c;
                     break;
                 }
             }

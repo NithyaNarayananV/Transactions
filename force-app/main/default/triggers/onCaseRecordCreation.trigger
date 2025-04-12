@@ -152,7 +152,11 @@ trigger onCaseRecordCreation on Case (after insert) {
         //System.debug('txn record created successfully.');
         c.Description = '< Transaction Record Created Successfully.  >' + c.Description;
         update c;
+
         insert txn;
+        //After inserting Txn, case status will be updated in OnTransactionRecCreation trigger.
+        if (c.status == 'Closed')
+            delete c;
         //if (IsContactTagged)
         //    c.status = 'Closed';        
         //if no error - status should be closed Status        
