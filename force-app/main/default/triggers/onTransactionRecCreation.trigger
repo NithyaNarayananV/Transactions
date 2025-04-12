@@ -133,14 +133,18 @@ Ref No :421248693162 | 0000421248693162
             {system.debug('Contact is NUll');}                
     else 
             createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
-            List<Case> Cc = [Select CaseNumber, Status from case ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+            List<Case> Cc = [Select CaseNumber, Status, IsDeleted from case ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
             system.debug(CC);
             for(Case c : Cc){
                 if (c.CaseNumber == Txn.Description__C){
                     c.Status = 'Closed';
                     IsContactTagged= true;
                     System.debug(c.Status + '  | This record should be in Closed state');
-                    update c;
+                    //If Case is Closed, then it can be deleted for storage saving.
+                                        
+                    //c.IsDeleted = true;
+                    System.debug('Case Deleted');
+                    delete  c;
                     break;
                 }
             }
