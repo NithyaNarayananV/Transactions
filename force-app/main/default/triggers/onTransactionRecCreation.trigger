@@ -24,7 +24,7 @@ Name : HUNGERBOX-PAYTM
 UPI ID : 8774066@PAYTM
 Ref No :421248693162 | 0000421248693162
     */
-    List <Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
+    List <Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
     //if there is some thing in Description, then it is Uploaded from Inspector.
     for (Transaction__c Txn: TList){
         String UpiTemp = '';
@@ -130,7 +130,7 @@ Ref No :421248693162 | 0000421248693162
             
             //Call the method in TargetClass and pass parameters
             if(Txn.Contact__c == null)
-            {system.debug('Contact is NUll');}
+                {system.debug('Contact is NUll');}
             else 
                 createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
             try{
@@ -144,7 +144,7 @@ Ref No :421248693162 | 0000421248693162
                     System.debug(c.Status + '  | This record should be in Closed state');
                     update c;
                     //If Case is Closed, then it can be deleted for storage saving.
-                    if (c.status == 'Closed')
+                    if (c.Status == 'Closed')
                         masterFuture.deleteCase(''+c.id);                    
                     //c.IsDeleted = true;
                     //System.debug('Case Deleted');
@@ -163,6 +163,27 @@ Ref No :421248693162 | 0000421248693162
                 
             //update Cc;
             //System.debug('CC Update');
+        }
+        else if (Txn.Type__c == 'Balance')
+        {
+            Account AccUpdate = [Select Id, Balance__c from Account where id = :Txn.BankAccount__c ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+            AccUpdate.Balance__c =   Txn.Rent_Amount__c;
+            update AccUpdate;
+            try{
+                Case C = [Select CaseNumber, Status from case where CaseNumber = :Txn.Description__C ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+                system.debug(c);
+                if (c.CaseNumber == Txn.Description__C){
+                    masterFuture.deleteCase(''+c.id);
+                    masterFuture.deleteTxn(''+Txn.id);
+                }
+            }
+            catch (DmlException e) {
+                System.debug('Error : Case detilas issue ' + e.getMessage());
+                //if error - status should be escalated
+                //c.status = 'Escalated';
+                //c.Description = '< Transaction Record Could not be Created. Error Meassage : '+ e.getMessage() +'  > ' + c.Description;
+                //update c;
+            }
         }
     }
 }

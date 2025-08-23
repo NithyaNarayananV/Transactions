@@ -3,7 +3,6 @@ public class masterFuture{
     @future  
     public static void testMethod1(Transaction__c Txn){
         
-
         List<Transaction_BigData__b> BtxnL = new List<Transaction_BigData__b>();
         
         //for (Transaction__c txn : TxnList) {        
@@ -17,9 +16,8 @@ public class masterFuture{
         if (!BtxnL.isEmpty()) {
             Database.insertImmediate(BtxnL);
         }
-           
     } */
-   @future
+    @future
     public static void deleteCase(String cId){
         system.debug('deleteCase called');
         Case caseDelete = [SELECT Id FROM Case WHERE Id = :cId];
@@ -28,5 +26,13 @@ public class masterFuture{
         delete caseDelete;
         system.debug('caseDelete deleted');
     }
-
+    @future
+    public static void deleteTxn(String tId){
+        system.debug('deleteTxn called');
+        Transaction__C  TxnDelete = [SELECT Id FROM Transaction__C WHERE Id = :tId];
+        system.debug('TxnDelete = '+TxnDelete);
+        system.debug('TxnDelete.Id = '+TxnDelete.Id);        
+        delete TxnDelete;
+        system.debug('TxnDelete deleted');
+    }
 }
