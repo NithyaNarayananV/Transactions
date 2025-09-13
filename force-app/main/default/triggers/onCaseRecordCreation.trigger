@@ -79,17 +79,19 @@ trigger onCaseRecordCreation on Case (after insert) {
         WeeklyBalance = true;
     }
     //need to add UPI ID    
-    if(mailBody.contains('VPA')==true){
+    
+
+
+    //UPIid = caseTriggerHelper.fetchUPI(mailBody);
+    caseTriggerHelper txnW =  caseTriggerHelper.fetchUPI(mailBody);
+    
+
+    //txnWrapper txnW = caseTriggerHelper.fetchUPI(mailBody);
+    if(txnW.UPIid !='Not Found'){
         WeeklyBalance = false;
-        PositionVPA = mailBody.indexOf('VPA');
-        PositionVPA+=4;        
-        while(mailBody.charAt(PositionVPA) !=32)    // Its a SPACE char
-        { if(mailBody.charAt(PositionVPA) ==10)     // New Line Char
-            break;
-            UPIid+=String.fromCharArray( new List<integer> { mailBody.charAt(PositionVPA) } );    
-            PositionVPA+=1;
-        }
     }
+        
+
     // Need to create a new method for Account to Account transaction where the UPI id is not present so the contact is not getting tagged.
     //account **0690 to account
     else if(mailBody.contains('account **0690 to account')==true){
@@ -103,8 +105,6 @@ trigger onCaseRecordCreation on Case (after insert) {
             PositionVPA+=1;
         }
     }
-
-
     //need to extract the Reference Number from the Email
 
     // Reference Number Extracition END!
@@ -135,10 +135,10 @@ trigger onCaseRecordCreation on Case (after insert) {
         txn.BankAccount__c ='001NS00000beezpYAA';
     else if(mailBody.contains('XX1686')==true || mailBody.contains('**1686')==true )
         txn.BankAccount__c ='001NS00000behFTYAY';
-    txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid ;
+    txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid +' | Name : '+txnW.contactName;
     txn.Paid_Date__c = System.today();
     txn.Rent_Amount__c = AmountValue;
-    txn.UPI_ID__c = UPIid;    
+    txn.UPI_ID__c = txnW.UPIid;    
     txn.RefNo__c = RefNo;//RefNo__c
     txn.RentMonth__c = System.today();
     txn.Description__C = c.CaseNumber;
