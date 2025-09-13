@@ -19,8 +19,10 @@ public with sharing class caseTriggerHelper {
         //Via VPA
          
         String UPIid = 'Not Found';
+        String payMode = 'Not Found';
         Integer currentIndex = 0;
         if(mailBody.contains('UPI')==true){
+            payMode = 'UPI';
             Pattern upiPattern = Pattern.compile('[\\w.-]+@[\\w]+ ');
             Matcher m = upiPattern.matcher(mailBody);
             while(m.find()){
@@ -30,16 +32,17 @@ public with sharing class caseTriggerHelper {
             }
         }
         //To find the Contact name in case if its a CreditCard UPI transaction
-         String contactName = 'Not Found';
-        if(mailBody.contains('Credit Card')){
-            Integer UPIidIndexPosition = mailBody.indexOf(UPIid);
-            Integer ContactNameIndex = UPIidIndexPosition + UPIid.length();
-            Integer EndIndexPosition = mailBody.indexOf(' on ');
-            contactName = mailBody.substring(ContactNameIndex, EndIndexPosition).trim();
-            System.debug('Extracted Contact Name: ' + contactName);
+        String contactName = 'Not Found';
+        if(mailBody.contains('Credit Card') && payMode == 'UPI')
+            payMode = 'UPI Credit Card';
+        Integer UPIidIndexPosition = mailBody.indexOf(UPIid);
+        Integer ContactNameIndex = UPIidIndexPosition + UPIid.length();
+        Integer EndIndexPosition = mailBody.indexOf(' on ');
+        contactName = mailBody.substring(ContactNameIndex, EndIndexPosition).trim();
+        System.debug('Extracted Contact Name: ' + contactName);
             
-        }
-        caseTriggerHelper txnDetails = new caseTriggerHelper(UPIid, contactName, null, null, null, null);
+    
+        caseTriggerHelper txnDetails = new caseTriggerHelper(UPIid, contactName, null, null, null, payMode);
 
         return txnDetails;
     }

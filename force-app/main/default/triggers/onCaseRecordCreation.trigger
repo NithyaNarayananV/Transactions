@@ -141,7 +141,7 @@ trigger onCaseRecordCreation on Case (after insert) {
     txn.UPI_ID__c = txnW.UPIid;    
     txn.RefNo__c = RefNo;//RefNo__c
     txn.RentMonth__c = System.today();
-    txn.Description__C = c.CaseNumber;
+    txn.Description__C = c.CaseNumber + '#'+txnW.contactName+'#'+txnW.txnMode;
     if (TxnType == 'Cr') txn.Type__c = 'Income';// if its Credited - Checkbox will be Checked!
     else if (TxnType == 'Dt') txn.Type__c = 'Expense';
     else txn.Type__c = 'Balance';

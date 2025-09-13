@@ -79,7 +79,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                             else if(Txn.Type__c == 'Expense')                                 
                                 ContactAmountUpdation.AmountUpdate2Contact( C.Id, 0,Txn.Rent_Amount__c);
                             break;
-                        }
+                        }   
                 }
             }
             //If Contact is not already present in System (UPI), New contact will be created with UPI id.
@@ -87,7 +87,11 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 Contact Cnew = new Contact();
                 Cnew.Description='\''+Txn.UPI_ID__c+'\',';
                 //Cnew.HomePhone = Txn.UPI_ID__c;
-                Cnew.LastName = ''+UpiTemp;
+                string contactName = Txn.Description__C.substring(9, txn.Description__C.indexOf('#',9));
+                if(contactName == 'Not Found' || contactName == null || contactName == '')
+                    Cnew.LastName = ''+UpiTemp;
+                else
+                    Cnew.LastName = contactName;
                 Insert Cnew; // New contact is Inserted
                 system.debug('Contact Details will be added to the Transaction record.');
                 Txn.Contact__c = ''+Cnew.Id;// Contact Details is added to the Transaction record.
@@ -116,7 +120,8 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             else 
                 createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
             try{
-                Case C = [Select CaseNumber, Status from case where CaseNumber = :Txn.Description__C ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
+                String caseNo = Txn.Description__C.substring(0, 8);
+                Case C = [Select CaseNumber, Status from case where CaseNumber = :caseNo ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
                 system.debug(c);                
                 if (c.CaseNumber == Txn.Description__C){
                     c.Status = 'Closed';
