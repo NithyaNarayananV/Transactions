@@ -10,6 +10,11 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
     List <Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
     //if there is some thing in Description, then it is Uploaded from Inspector.
     for (Transaction__c Txn: TList){
+        Integer indexHash1 =  txn.Description__C.indexOf('#');
+        Integer indexHash2 =  txn.Description__C.indexOf('#',indexHash1+1);
+        Integer indexTxnDecEnd =  txn.Description__C.length();
+        string contactName = Txn.Description__C.substring(indexHash1+1, indexHash2);
+        Txn.Payment_Mode__c = Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd)=='Not Found'?null:Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd);
         String UpiTemp = '';
         boolean IsContactTagged = false;
         if(Txn.Description__C!=null && Txn.RefNo__c !=null){
@@ -45,7 +50,6 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         }
         else if (Txn.UPI_ID__c!=null)
         {UpiTemp = Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@'));}                            
-
         System.debug('Before Contact Connect');
         if(Txn.UPI_ID__c!= null){
             system.debug('Inside UPI not null');
@@ -63,12 +67,12 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                     //if (C.Fax == Txn.UPI_ID__c || C.HomePhone == Txn.UPI_ID__c || C.OtherPhone == Txn.UPI_ID__c || C.Phone == Txn.UPI_ID__c || C.AssistantPhone == Txn.UPI_ID__c){
                     //for (String D : C.Description )
                     if (Txn.UPI_ID__c.contains('@'))
-                    UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@')):UpiTemp;
+                        UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@')):UpiTemp;
                     else
-                    UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c:UpiTemp;
+                        UpiTemp = (UpiTemp=='')? Txn.UPI_ID__c:UpiTemp;
                     if(C.Description!=null)
                         if(C.Description.contains(UpiTemp)==true)
-                        {    
+                        {
                             Txn.Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
                             IsContactTagged = true;
                             Update Txn;
@@ -79,7 +83,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                             else if(Txn.Type__c == 'Expense')                                 
                                 ContactAmountUpdation.AmountUpdate2Contact( C.Id, 0,Txn.Rent_Amount__c);
                             break;
-                        }   
+                        }
                 }
             }
             //If Contact is not already present in System (UPI), New contact will be created with UPI id.
@@ -87,7 +91,6 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 Contact Cnew = new Contact();
                 Cnew.Description='\''+Txn.UPI_ID__c+'\',';
                 //Cnew.HomePhone = Txn.UPI_ID__c;
-                string contactName = Txn.Description__C.substring(9, txn.Description__C.indexOf('#',9));
                 if(contactName == 'Not Found' || contactName == null || contactName == '')
                     Cnew.LastName = ''+UpiTemp;
                 else
@@ -95,25 +98,20 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 Insert Cnew; // New contact is Inserted
                 system.debug('Contact Details will be added to the Transaction record.');
                 Txn.Contact__c = ''+Cnew.Id;// Contact Details is added to the Transaction record.
-                if(Txn.Type__c == 'Income')                                 
+                if(Txn.Type__c == 'Income')
                     ContactAmountUpdation.AmountUpdate2Contact( ''+Cnew.Id, Txn.Rent_Amount__c, 0);
-                else if(Txn.Type__c == 'Expense')                                 
+                else if(Txn.Type__c == 'Expense')
                     ContactAmountUpdation.AmountUpdate2Contact( Cnew.Id, 0,Txn.Rent_Amount__c);
-                            
                 if(Txn.Contact__c == null)
                 {
                     system.debug('Contact is NUll');
-                    //system.debug('Contact is NUll');
                     Txn.Description__C+=Cnew.Id+'>>';
                 }
                 update Txn;
             } 
             //to update amount field in contact
             //AmountUpdate2Contact(String ConId, Decimal Income, Decimal OutGoing)
-                
             System.debug('B4 Big Object');
-            
-            
             //Call the method in TargetClass and pass parameters
             if(Txn.Contact__c == null)
                 {system.debug('Contact is NUll');}
