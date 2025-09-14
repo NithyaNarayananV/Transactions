@@ -49,18 +49,26 @@ public with sharing class caseTriggerHelper {
         return this.txnMode;
     }
     public Decimal getAmount(){
-        String amountString = '-1';
-        Pattern currencyPattern = Pattern.compile('\\d{1,2}(,\\d{2})*(\\.\\d{2})');
-        if(this.mailBodyX.contains('Rs.')==true || this.mailBodyX.contains('INR')==true){
+        String amountString;
+        Pattern currencyPattern = Pattern.compile('\\d{1,3}(,\\d{2})*(\\.\\d{2})');
+
+        if (this.mailBodyX != null && (this.mailBodyX.contains('Rs.') || this.mailBodyX.contains('INR'))) {
             Matcher m = currencyPattern.matcher(this.mailBodyX);
-            if(m.find()){
+            if (m.find()) {
                 amountString = m.group();
             }
         }
-        Decimal amountDec = Decimal.valueOf(amountString.replace(',', ''));
-        System.debug('Converted Decimal: ' + amountDec);
-        return amountDec;
+
+        if (amountString != null) {
+            Decimal amountDec = Decimal.valueOf(amountString.replace(',', ''));
+            System.debug('Converted Decimal: ' + amountDec);
+            return amountDec;
+        } else {
+            System.debug('No valid amount found.');
+            return 0;
+        }
     }
+
     
     // Wrapper class to hold parsed UPI transaction details
     public static caseTriggerHelper fetchUPI(String mailBody){
