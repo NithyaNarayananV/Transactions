@@ -5,7 +5,10 @@ public class contactTag implements Queueable {
     private List<String> conNameList = new List<String>(); //Contact Name
     private List<String> txnIdList = new List<String>(); // Transaction Id from main class
     List<Transaction__c> TList = new List<Transaction__c>(); // Transaction list
-    private List<Contact> Con = [Select Id, LastName, Description, InComing__c, OutGoing__c , Balance__c from contact Limit 10000];
+   	List<Transaction__c> TnewConList = new List<Transaction__c>(); // Transaction list
+
+    private List<Contact> Con = new List<Contact>();// [Select Id, LastName, Description, InComing__c, OutGoing__c , Balance__c from contact Limit 10000];
+    
     private Map<Id, Contact> contactMap = new Map<Id, Contact>();
     private List<String> newConUpiId = new List<String>(); // to hav new upiid alone
     private Map<String,String> newUpiAndConId = new Map<String,String>();//to New upiid and its future contact id.
@@ -14,8 +17,16 @@ public class contactTag implements Queueable {
     private Integer index = 0;
     private String upiIdTemp='';
     
-    public contactTag(List<String> upiIdList, List<String> conNameList, List<String> txnIdList){
+    public contactTag(List<String> upiIdList, List<String> conNameList, List<String> txnIdList, List<String> ConCondition){
         system.debug('Testing inside Constructor');
+        String query  = 'Select Id, LastName, Description, Upi_Ids__c, InComing__c, OutGoing__c , Balance__c FROM contact WHERE ';
+        query+=string.join(ConCondition, ' OR ');
+
+ 		this.Con = Database.query(query);
+        system.debug('contactTag | Query = '+query);
+		system.debug('contactTag | this.con = '+this.Con);
+        system.debug('contactTag | this.con length = '+this.Con.size());
+
         this.upiIdList=upiIdList;
 		this.conNameList=conNameList;       
         this.txnIdList=txnIdList;
@@ -40,6 +51,8 @@ public class contactTag implements Queueable {
     public void NewContactCreation(){
         Contact Cnew = new Contact();
         Cnew.Description='\''+TList[index].UPI_ID__c+'\',';
+        Cnew.Upi_ids__c='\''+TList[index].UPI_ID__c+'\',';
+
         //Cnew.HomePhone = Txn.UPI_ID__c;
         if(conNameList[index] == 'Not Found' || conNameList[index] == null || conNameList[index] == '')
             Cnew.LastName = ''+UpiIdTemp;
@@ -49,41 +62,35 @@ public class contactTag implements Queueable {
         newConUpiId.add(TList[index].UPI_ID__c);
         newUpiAndConId.put(TList[index].UPI_ID__c,' ');  
         
-		if(ConNew.size()>0)
-        {
+		if(ConNew.size()>0){
             Database.SaveResult[] results = Database.insert(ConNew,false);
             for (Integer i =0; i<results.size(); i++){
                 if(results[i].isSuccess()){
                     System.debug('Success record : '+ConNew[i].Id);
                     newUpiAndConId.put(newConUpiId[i],''+ConNew[i].Id);
                 }
-                if(!results[i].isSuccess()){
-                    System.debug('Failed record : '+ConNew[i]);
-                }
+                if(!results[i].isSuccess()){System.debug('Failed record : '+ConNew[i]);}
             }
             //Contacts has been created!
             system.debug('Contacts has been created!');
         }
         else
-            system.debug('No Contact to create!');     
-        contactMap = new Map<Id, Contact>(ConNew);
-    }
-    
-    
+            system.debug('No Contact to create!');
+    }    
     public void execute(QueueableContext context) {
         system.debug('Testing inside execute');
-        TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
+        TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
     	////From Future Method    
         system.debug('contactTag | execute | Queueable is running');
         
-        for ( String upiId: upiIdList){            
-            if(txnIdList[index]!='Failed'){//only working on the Txn records that are saved into database.
+        for ( String upiId: upiIdList){
+            if(txnIdList[index]!='Failed' && upiId !=null){//only working on the Txn records that are saved into database.
                 system.debug('inside => if(txnIdList[index]!=\'Failed\'){//only working on the Txn records that are saved into database.');
                 //################### Work here!!!
                 upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
                 Boolean IsContactTagged = false;
                 for(Contact c:con){
-                    if(C.Description.contains(upiIdTemp)==true){    
+                    if(C.Description!=null && ( C.Description.contains(upiIdTemp)==true ||  C.Upi_Ids__C.contains(upiIdTemp)==true )){    
                         system.debug('Inside For If');
                         TList[index].Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
                         IsContactTagged = true;
@@ -102,58 +109,34 @@ public class contactTag implements Queueable {
                     */
                     if (newConUpiId.contains(TList[index].UPI_ID__c))
                         System.debug('Contact is not present, but previos record have this contact.');
-                    else NewContactCreation();
+                    else {
+                        TnewConList.add(TList[index]);
+                        NewContactCreation();
+                    }
                 }
             }else{//if the respesctive Txn is Failed to save ito adtabase
                 system.debug('Else of if(txnIdList[index]!=\'Failed\')');
             }
             index++;
         }        
-        //Time to Create a newContacts in Bulk
-        if(ConNew.size()>0)
-        {
-            //Now transaction record needs to be tagged and contact needs to be updated with amount info;
-            for ( String upiId: upiIdList){            
-                system.debug('Inside  : for ( String upiId: upiIdList){  ');
-                //newUpiAndConId
-                TList[index].Contact__c = ''+ newUpiAndConId.get(upiId);
-				// below express is similar to this c=ContactAmountUpdation(c);
-				// updating the contact with the latest transaction amount and giving back to the map for updating it later
-                contactMap.put(TList[index].Contact__c,ContactAmountUpdation(contactMap.get(TList[index].Contact__c)));
-            }
-        }
-        
+		contactMap = new Map<Id, Contact>(ConNew);
         //Need to update Transaction and Contact
-            //ConNewUpdate & TList
-        Database.SaveResult[] resultsTxn = Database.update(TList,false);
-		Database.SaveResult[] resultsCon = Database.update(ConNewUpdate,false);
+        // 
+        //ConNewUpdate & TList
+        index = 0;
+        for ( String upiId: newConUpiId){
+            system.debug('inside =>         for ( String upiId: newConUpiId){');
+            TnewConList[index].Contact__c = ''+newUpiAndConId.get(upiId); // If contact already Exist, Contact Id will be added to Transaction Record.  | but its not getting added correctly as expected!
+            //IsContactTagged = true;
+            System.debug('Txn TnewConList[index].Contact__c | '+TnewConList[index].Contact__c);
+            //to update amount field in contact
+            ConNew[index]=ContactAmountUpdation(ConNew[index]);            
+            index++;       
+        } 
+        if (TList.size()>0)			Database.SaveResult[] resultsTxn	= Database.update(TList			,false);
+        if (TnewConList.size()>0) 	Database.SaveResult[] resultsNewTxn = Database.update(TnewConList	,false);
+		if (ConNew.size()>0) 		Database.SaveResult[] resultsCon 	= Database.update(ConNew		,false);
         system.debug('Done with things -> please dont throw any error yaar');
     	//ENd From Future Method
     }
 }
-/*
-public class QueueableDemoClass implements Queueable {
-    private List<Id> accountIds;
-    
-    // Constructor to pass account IDs
-    public QueueableDemoClass(List<Id> accIds) {
-        this.accountIds = accIds;
-    }
-    
-    // Execute method to perform the operation
-    public void execute(QueueableContext context) {
-        List<Account> accounts = [SELECT Id, Name FROM Account WHERE Id IN :accountIds];
-        for (Account acc : accounts) {
-            acc.Name = acc.Name + ' - Updated with queueable';
-        }
-        update accounts;
-    }
-}
-
-// Enqueue the job
-List<Id> accountIds = new List<Id>();
-for (Account acc : [SELECT Id FROM Account WHERE CreatedDate = TODAY]) {
-    accountIds.add(acc.Id);
-}
-Id jobId = System.enqueueJob(new QueueableDemoClass(accountIds));
-*/

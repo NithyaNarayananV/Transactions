@@ -1,6 +1,7 @@
 public with sharing class caseTriggerHelper {
 	//public static List<contact> Con;
     public static List<String> upiIdList = new List<String>();
+    public static List<String> ConCondition = new List<String>();
     public static List<String> conNameList = new  List<String>();
     public static List<Id> txnIdList;
     public static caseTriggerHelper txnDetails;
@@ -26,6 +27,8 @@ public with sharing class caseTriggerHelper {
         this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
         this.bankAcc	= getBankAccount();
         upiIdList.add(this.upiId);
+        ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
+        //this.upiId.substring(0,this.upiId.indexOf('@'-1))
         conNameList.add(this.contactName);
     }
     public caseTriggerHelper(Transaction__c txn){//String upiId,  String contactName, Decimal amount, Date txnDate, String referenceNumber,String txnMode) {
@@ -33,13 +36,18 @@ public with sharing class caseTriggerHelper {
         this.amount 	= txn.Rent_Amount__c;
         this.txnDate 	= txn.Paid_Date__c;
         this.txnType	= txn.Type__c;	//this.txnType;
+        this.bankAcc	= getBankAccount(); //txn.BankAccount__c; // Need to fetch it from the Reference No
         this.refNo		= txn.RefNo__c;		//refNo!=null?refNo:this.refNo;
-        this.bankAcc	= txn.BankAccount__c;
         this.upiId 		= getUPIidDesc(); 	// upiId!=null?upiId:this.upiId;
         this.txnMode 	= this.txnMode!=null?this.txnMode:getPaymentMode();
         this.contactName= this.contactName!=null?this.contactName:getContactName(); 	//contactName!=null?contactName:this.contactName;        
+        upiIdList.add(this.upiId);
+        ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
+
+        conNameList.add(this.contactName);
     }
 
+    
     public String getUPIidDesc(){
 		String UPIid = 'Not Found';
         String UpiTemp ='';        
@@ -142,11 +150,24 @@ public with sharing class caseTriggerHelper {
         return 'Bal';
     }
     public String getBankAccount(){
-        if(mailBodyX.contains('XX0690')==true || mailBodyX.contains('**0690')==true )
+        String A90 = '0690';
+        String A86 = '1686';
+		String A87 = '9987';
+        if (mailBodyX == null)//Then its from the Bulk Txn Upload;
+        {
+            mailBodyX = this.desX;
+            this.desX = this.desX.substring(this.desX.indexOf('#')+1, this.desX.length());
+        }else{
+            A90 = 'XX'+A90;
+            A86 = 'XX'+A86;
+            A87 = 'XX'+A87;
+        }
+        
+        if(mailBodyX.contains('XX0690')==true || mailBodyX.contains('**'+A90)==true)
             return 'XX0690';
-        else if(mailBodyX.contains('XX1686')==true || mailBodyX.contains('**1686')==true )
+        else if(mailBodyX.contains('XX1686')==true || mailBodyX.contains('**'+A86)==true )
             return 'XX1686';  
-        else if(mailBodyX.contains('XX9987')==true || mailBodyX.contains('**9987')==true )
+        else if(mailBodyX.contains('XX9987')==true || mailBodyX.contains('**'+A87)==true )
             return 'XX9987'; 
         //XX9987 
         return '000000';
@@ -156,13 +177,11 @@ public with sharing class caseTriggerHelper {
     public static caseTriggerHelper fetchMailData(String mailBody){
         //Fetches UPI Id, Contact Name, Payment Mode  from the mail body
         txnDetails = new caseTriggerHelper(mailBody);//null, null, null, null, null, null);     
-        
         return txnDetails;
     }
 	public static caseTriggerHelper fetchTxnData(Transaction__c txn){
         //Fetches UPI Id, Contact Name, Payment Mode  from the mail body
         txnDetails = new caseTriggerHelper(txn);//null, null, null, null, null, null);     
-                
         return txnDetails;
     }
 	public static void getContact(List<String> INtxnIdList ){//For Contact related works - Future planning
@@ -173,7 +192,7 @@ public with sharing class caseTriggerHelper {
         txnIdList=INtxnIdList;
         //Future works need to be done.
         //contactTag( upiIdList,conNameList, txnIdList);
-        Id jobId = System.enqueueJob(new contactTag(upiIdList,conNameList, txnIdList));
+        Id jobId = System.enqueueJob(new contactTag(upiIdList,conNameList, txnIdList, ConCondition));
     }
     
     //the below future is safe to be deleted as i have moved the content to queueable
@@ -182,7 +201,7 @@ public with sharing class caseTriggerHelper {
     public static void contactTag( List<String> upiIdList, List<String> conNameList, List<String> txnIdList){
         system.debug('caseTriggerHelper | contactTag | Future is running');
         List<Contact> Con = [Select Id, LastName, Description, InComing__c, OutGoing__c , Balance__c from contact Limit 10000];
-        List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
+        List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
         List<String> newConUpiId = new List<String>(); // to hav new upiid alone
         Map<String,String> newUpiAndConId = new Map<String,String>();//to New upiid and its future contact id.
         List<Contact> ConNew = new List<Contact>();
@@ -190,8 +209,8 @@ public with sharing class caseTriggerHelper {
         String upiIdTemp='';
         //if(upiIdList.size()>0)
         //List<List<Sobject>> searchResults = [FIND :upiIdList IN Description FIELDS RETURNING Contact(Id, LastName, Description)];
-        for ( String upiId: upiIdList){            
-            if(txnIdList[index]!=null){//only working on the Txn records that are saved into database.
+        for ( String upiId: upiIdList){
+            if(txnIdList[index]!=null && upiId !=null){//only working on the Txn records that are saved into database.
                 system.debug('inside => if(txnIdList[index]!=\'null\'){//only working on the Txn records that are saved into database.');
                 //################### Work here!!!
                 upiIdTemp = upiId.substring(0,upiId.indexOf('@'));

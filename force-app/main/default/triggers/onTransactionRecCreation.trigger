@@ -6,8 +6,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
     System.debug('Start');
     /*
     If the transaction record contains content in Description, separate Deconing needs to be done
-    */
-    /*
+
      Sept 16th Learing:
 1.	Types of inputs when bulk uploaded via inspector from excel:
     UPI with UPI ID
@@ -21,8 +20,10 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
     if it doesnt have # in description its from bulk uploa
      */    
     if(trigger.isInsert){
-        List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Maintenance__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, RentMonth__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
-        List<contact> Con = [Select Id, Description from contact];
+        List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
+		List<String> txnIdList = new List<String>();
+
+        //List<contact> Con = [Select Id, Description from contact];
         Integer indexHash1 =  -1;
         Integer indexHash2 =  -1;
         //Integer indexTxnDecEnd =  txn.Description__C.length();                
@@ -42,11 +43,24 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             else{//its from Bulk Upload
 				system.debug('onTransactionRecCreation | else part of => if(txn.Description__C.contains(#))//Its from Bulk Upload ');
 				transactionTriggerHelper.extractDescription(txn);
+                txn.name = ''+caseTriggerHelper.txnDetails.TxnType+' - '+Txn.Rent_Amount__c +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
+                txn.Paid_Date__c = System.today();
+                //txn.Rent_Amount__c = AmountValue;
+                txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    
+                //txn.RefNo__c = caseTriggerHelper.txnDetails.refNo; //RefNo;//RefNo__c
+                system.debug('onTransactionRecCreation | caseTriggerHelper.txnDetails.refNo = '+caseTriggerHelper.txnDetails.refNo);
+                system.debug('onTransactionRecCreation | txn.RefNo__c = '+txn.RefNo__c);
+                txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;
+                //txn.Description__C = c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
             }
+            txnIdList.add(Txn.Id);
+        }            
+        update TList;
+		caseTriggerHelper.getContact(txnIdList);
+
+            /*
             if (Txn.UPI_ID__c!=null)
             	UpiTemp = Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@'));
-            
-            
             
             System.debug('Before Contact Connect');
             if(Txn.UPI_ID__c!= null){
@@ -121,6 +135,8 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                     {system.debug('Contact is NUll');}
                 else 
                     createRecordOnTxnBigObject.receiveParameters(Txn.id,Txn.Contact__c, Txn.Name, Txn.Paid_Date__c, Txn.Rent_Amount__c,Txn.UPI_ID__c);
+                if(txn.Description__C.contains('#'))
+
                 try{
                     String caseNo = Txn.Description__C.substring(0, 8);
                     Case C = [Select CaseNumber, Status from case where CaseNumber = :caseNo ];// where (FAX == UPIid or HomePhone = UPIid or OtherPhone = UPIid or Phone = UPIid or AssistantPhone = UPIid)];
@@ -154,7 +170,8 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 catch (DmlException e) {
                     System.debug('Error : Case detilas issue ' + e.getMessage());
                 }
-            }
-        }
+            }*/
+			
+        
 	}//END if(trigger.isInsert)
 }

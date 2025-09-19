@@ -37,7 +37,6 @@ trigger onCaseRecordCreation on Case (after insert) {
             txn.RefNo__c = caseTriggerHelper.txnDetails.refNo; //RefNo;//RefNo__c
             system.debug('onCaseRecordCreation | caseTriggerHelper.txnDetails.refNo = '+caseTriggerHelper.txnDetails.refNo);
             system.debug('onCaseRecordCreation | txn.RefNo__c = '+txn.RefNo__c);
-            txn.RentMonth__c = System.today();
             txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;
             txn.Description__C = c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
             
@@ -52,7 +51,7 @@ trigger onCaseRecordCreation on Case (after insert) {
             if(results[i].isSuccess()){
                 System.debug('Success record : '+tList[i].Id);
                 txnIdList.add(tList[i].Id);
-                //txnIdList
+                //txnIdListupiId
                 //caseTriggerHelper.txnDetails.txnIdList.add(tList[i].Id);
                 clist[i].Description = '< Transaction Record Created Successfully.  >'+clist[i].Description;
             }
