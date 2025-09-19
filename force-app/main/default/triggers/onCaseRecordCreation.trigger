@@ -6,6 +6,7 @@ trigger onCaseRecordCreation on Case (after insert) {
         List<Transaction__C> tList = new List<Transaction__C>();
 		List<Account> aList = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
         List<String> txnIdList = new List<String>();
+        String TxnType ='';
         for (Case c:cList){
             String mailBody = ''+c.get('Description');
             Decimal AmountValue=0.0;            
@@ -13,7 +14,7 @@ trigger onCaseRecordCreation on Case (after insert) {
             System.debug('*********');            
             caseTriggerHelper.fetchMailData(mailBody);
             system.debug('onCaseRecordCreation | caseTriggerHelper.txnDetails ='+ caseTriggerHelper.txnDetails);
-            String TxnType = caseTriggerHelper.txnDetails.txnType;
+            TxnType = caseTriggerHelper.txnDetails.txnType;
             AmountValue = caseTriggerHelper.txnDetails.amount;
             
             if (caseTriggerHelper.txnDetails.txnType =='Bal')
@@ -57,7 +58,7 @@ trigger onCaseRecordCreation on Case (after insert) {
             }
             if(!results[i].isSuccess()){
                 System.debug('Failed record : '+tList[i]);
-                txnIdList.add('Failed');
+                txnIdList.add(null);
                 clist[i].status = 'Escalated';
 				clist[i].Description = ' >>> ' + clist[i].Description; //End of Error Info
                 for(Database.Error err : results[i].getErrors())

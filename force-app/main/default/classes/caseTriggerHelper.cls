@@ -174,7 +174,6 @@ public with sharing class caseTriggerHelper {
         //Future works need to be done.
         //contactTag( upiIdList,conNameList, txnIdList);
         Id jobId = System.enqueueJob(new contactTag(upiIdList,conNameList, txnIdList));
-
     }
     
     //the below future is safe to be deleted as i have moved the content to queueable
@@ -192,8 +191,8 @@ public with sharing class caseTriggerHelper {
         //if(upiIdList.size()>0)
         //List<List<Sobject>> searchResults = [FIND :upiIdList IN Description FIELDS RETURNING Contact(Id, LastName, Description)];
         for ( String upiId: upiIdList){            
-            if(txnIdList[index]!='Failed'){//only working on the Txn records that are saved into database.
-                system.debug('inside => if(txnIdList[index]!=\'Failed\'){//only working on the Txn records that are saved into database.');
+            if(txnIdList[index]!=null){//only working on the Txn records that are saved into database.
+                system.debug('inside => if(txnIdList[index]!=\'null\'){//only working on the Txn records that are saved into database.');
                 //################### Work here!!!
                 upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
                 Boolean IsContactTagged = false;
@@ -249,7 +248,7 @@ public with sharing class caseTriggerHelper {
                     }
                 }
             }else{//if the respesctive Txn is Failed to save ito adtabase
-                system.debug('Else of if(txnIdList[index]!=\'Failed\')');
+                system.debug('Else of if(txnIdList[index]!=\'null\')');
             }
             index++;
         }        
