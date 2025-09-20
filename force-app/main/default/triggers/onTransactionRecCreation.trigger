@@ -44,10 +44,10 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
 				system.debug('onTransactionRecCreation | else part of => if(txn.Description__C.contains(#))//Its from Bulk Upload ');
 				transactionTriggerHelper.extractDescription(txn);
                 txn.name = ''+caseTriggerHelper.txnDetails.TxnType+' - '+Txn.Rent_Amount__c +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
-                txn.Paid_Date__c = System.today();
+                //txn.Paid_Date__c = System.today();
                 //txn.Rent_Amount__c = AmountValue;
                 txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    
-                //txn.RefNo__c = caseTriggerHelper.txnDetails.refNo; //RefNo;//RefNo__c
+                txn.RefNo__c = caseTriggerHelper.txnDetails.refNo; //RefNo;//RefNo__c
                 system.debug('onTransactionRecCreation | caseTriggerHelper.txnDetails.refNo = '+caseTriggerHelper.txnDetails.refNo);
                 system.debug('onTransactionRecCreation | txn.RefNo__c = '+txn.RefNo__c);
                 txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;

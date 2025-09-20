@@ -1,6 +1,7 @@
 public with sharing class caseTriggerHelper {
 	//public static List<contact> Con;
     public static List<String> upiIdList = new List<String>();
+    public static List<String> upiIdListTemp = new List<String>();
     public static List<String> ConCondition = new List<String>();
     public static List<String> conNameList = new  List<String>();
     public static List<Id> txnIdList;
@@ -16,6 +17,17 @@ public with sharing class caseTriggerHelper {
     public String 	bankAcc		{ get; set; }
     public Decimal 	Amount 		{ get; set; }
     public Date 	txnDate 	{ get; set; }
+
+    //String UPIid = 'Not Found';
+    String UpiTemp ='';    
+    Integer indexHifen1 = -1;// this.desX.indexOf('-'); // before - is UPI Symbol | After - is Contact Name
+    Integer indexHifen2 = -1;// this.desX.indexOf('-',indexHifen1+1); //Before - is Contact Name | After - is UPI ID
+    Integer indexAt 	= -1;// this.desX.indexOf('@'); // Before @ is partial UPI Id | After @ is balance UPI Id
+    Integer indexHifen3 = -1;// this.desX.indexOf('-',indexAt+1); //Before - is UPI Id | After - Is some un necessary Number
+    Integer indexHifen4 = -1;// this.desX.indexOf('-',indexHifen3+1); //Before - Is some un necessary Number | After - Reference Number
+    Integer indexHifen5 = -1;// this.desX.indexOf('-',indexHifen4+1); //Before - Reference Number | After - Note Info
+
+
     public caseTriggerHelper(String mailBodyX){//String upiId,  String contactName, Decimal amount, Date txnDate, String referenceNumber,String txnMode) {
         this.mailBodyX	= mailBodyX;
         this.upiId 		= getUPIid(); 	// upiId!=null?upiId:this.upiId;
@@ -27,7 +39,8 @@ public with sharing class caseTriggerHelper {
         this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
         this.bankAcc	= getBankAccount();
         upiIdList.add(this.upiId);
-        ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
+        upiIdListTemp.add(this.UpiTemp);
+        ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
         //this.upiId.substring(0,this.upiId.indexOf('@'-1))
         conNameList.add(this.contactName);
     }
@@ -36,21 +49,22 @@ public with sharing class caseTriggerHelper {
         this.amount 	= txn.Rent_Amount__c;
         this.txnDate 	= txn.Paid_Date__c;
         this.txnType	= txn.Type__c;	//this.txnType;
-        this.bankAcc	= getBankAccount(); //txn.BankAccount__c; // Need to fetch it from the Reference No
         this.refNo		= txn.RefNo__c;		//refNo!=null?refNo:this.refNo;
+        this.bankAcc	= getBankAccount(); //txn.BankAccount__c; // Need to fetch it from the Reference No
         this.upiId 		= getUPIidDesc(); 	// upiId!=null?upiId:this.upiId;
         this.txnMode 	= this.txnMode!=null?this.txnMode:getPaymentMode();
         this.contactName= this.contactName!=null?this.contactName:getContactName(); 	//contactName!=null?contactName:this.contactName;        
-        upiIdList.add(this.upiId);
-        ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
+        upiIdList.add(this.UpiId);
+        upiIdListTemp.add(this.UpiTemp);
+
+        ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
+        //ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
 
         conNameList.add(this.contactName);
     }
 
     
     public String getUPIidDesc(){
-		String UPIid = 'Not Found';
-        String UpiTemp ='';        
         if(this.desX!=null && this.refNo !=null ){
             if (this.desX.substring(0,3) == 'UPI' && this.desX.contains('@')){
                 //txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid ;
@@ -60,17 +74,19 @@ public with sharing class caseTriggerHelper {
                 Type	Name			UPI ID		Some Info	Ref No		Note
                 UPI	EASWARAN	EASWARANS2011-6@OKAXIS-AIRP0000001	919999477484	CAM TO AIRPORT                
                  */ 
-                Integer indexHifen1 =  this.desX.indexOf('-'); // before - is UPI Symbol | After - is Contact Name
-                Integer indexHifen2 =  this.desX.indexOf('-',indexHifen1+1); //Before - is Contact Name | After - is UPI ID
-                Integer indexAt 	=  this.desX.indexOf('@'); // Before @ is partial UPI Id | After @ is balance UPI Id
-	 			Integer indexHifen3 =  this.desX.indexOf('-',indexAt+1); //Before - is UPI Id | After - Is some un necessary Number
-                Integer indexHifen4 =  this.desX.indexOf('-',indexHifen3+1); //Before - Is some un necessary Number | After - Reference Number
-                Integer indexHifen5 =  this.desX.indexOf('-',indexHifen4+1); //Before - Reference Number | After - Note Info
+                this.indexHifen1 =  this.desX.indexOf('-'); // before - is UPI Symbol | After - is Contact Name
+                this.indexHifen2 =  this.desX.indexOf('-',indexHifen1+1); //Before - is Contact Name | After - is UPI ID
+                this.indexAt 	 =  this.desX.indexOf('@'); // Before @ is partial UPI Id | After @ is balance UPI Id
+	 			this.indexHifen3 =  this.desX.indexOf('-',indexAt+1); //Before - is UPI Id | After - Is some un necessary Number
+                this.indexHifen4 =  this.desX.indexOf('-',indexHifen3+1); //Before - Is some un necessary Number | After - Reference Number
+                this.indexHifen5 =  this.desX.indexOf('-',indexHifen4+1); //Before - Reference Number | After - Note Info
 
                 //Integer indexTxnDecEnd =  txn.Description__C.length();                
                 this.contactName = this.desX.substring(indexHifen1+1, indexHifen2);                
-                UPIid = this.desX.substring(indexHifen2+1,indexHifen3);               
-                UpiTemp = this.desX.substring(indexHifen2+1,indexAt);
+                this.UPIid = this.desX.substring(indexHifen2+1,indexHifen3);               
+                this.UpiTemp = this.desX.substring(indexHifen2+1,indexAt);
+                //if(UpiTemp[-2]=='-')
+                //    UpiTemp = UpiTemp.substring(0,UpiTemp.length()-2);
                 //update Txn;
                 system.debug('Txn Updated');
 				system.debug('caseTriggerHelper | getUPIidDesc | this.contactName = '+this.contactName);
@@ -78,19 +94,19 @@ public with sharing class caseTriggerHelper {
                 system.debug('caseTriggerHelper | getUPIidDesc | this.txnMode = '+this.txnMode);
             }
         }            
-        return UPIid;
+        return this.UPIid;
     }
     public String getUPIid(){
-        String UPIid = 'Not Found';
+        //String UPIid = 'Not Found';
         if(this.mailBodyX.contains('UPI')==true){
             Pattern upiPattern = Pattern.compile('[\\w.-]+@[\\w]+ ');
             Matcher m = upiPattern.matcher(this.mailBodyX);
             if(m.find()){
-                UPIid = m.group();
-                System.debug('Found UPI ID: ' + UPIid);
+                this.UPIid = m.group();
+                System.debug('Found UPI ID: ' + this.UPIid);
             }
         }
-        return UPIid;
+        return this.UPIid;
     }
     
     public string getContactName(){ 
@@ -150,17 +166,17 @@ public with sharing class caseTriggerHelper {
         return 'Bal';
     }
     public String getBankAccount(){
-        String A90 = '0690';
-        String A86 = '1686';
-		String A87 = '9987';
-        if (mailBodyX == null)//Then its from the Bulk Txn Upload;
+        String A90 = 'XX0690';
+        String A86 = 'XX1686';
+		String A87 = 'XX9987';
+        system.debug('class : caseTriggerHelper | getBankAccount | this.refNo : '+this.refNo);
+        system.debug('class : caseTriggerHelper | getBankAccount | mailBodyX : '+this.mailBodyX);
+        if (this.refNo.contains('#'))//Then its from the Bulk Txn Upload;
         {
-            mailBodyX = this.desX;
-            this.desX = this.desX.substring(this.desX.indexOf('#')+1, this.desX.length());
-        }else{
-            A90 = 'XX'+A90;
-            A86 = 'XX'+A86;
-            A87 = 'XX'+A87;
+            mailBodyX = 'XX'+this.refNo.substring(0,this.refNo.indexOf('#'));
+            System.debug('class : caseTriggerHelper | getBankAccount | mailBodyX after modification : '+this.mailBodyX);
+            this.refNo = this.refNo.substring(this.refNo.indexOf('#')+1,this.refNo.length());
+            return mailBodyX;
         }
         
         if(mailBodyX.contains('XX0690')==true || mailBodyX.contains('**'+A90)==true)
@@ -176,119 +192,17 @@ public with sharing class caseTriggerHelper {
     // Wrapper class to hold parsed UPI transaction details
     public static caseTriggerHelper fetchMailData(String mailBody){
         //Fetches UPI Id, Contact Name, Payment Mode  from the mail body
-        txnDetails = new caseTriggerHelper(mailBody);//null, null, null, null, null, null);     
+        txnDetails = new caseTriggerHelper(mailBody);
         return txnDetails;
     }
 	public static caseTriggerHelper fetchTxnData(Transaction__c txn){
-        //Fetches UPI Id, Contact Name, Payment Mode  from the mail body
-        txnDetails = new caseTriggerHelper(txn);//null, null, null, null, null, null);     
+        //Fetches UPI Id, Contact Name, Payment Mode  from the Transaction's Description
+        txnDetails = new caseTriggerHelper(txn);
         return txnDetails;
     }
 	public static void getContact(List<String> INtxnIdList ){//For Contact related works - Future planning
-		//if(Con.size()<=0 || Con == null ){
-           	//Con = [Select Id, LastName, Description from contact Limit 10000];
-			system.debug('Contact related works will take part here');
-        //}
+		system.debug('Contact related works will take part here');
         txnIdList=INtxnIdList;
-        //Future works need to be done.
-        //contactTag( upiIdList,conNameList, txnIdList);
-        Id jobId = System.enqueueJob(new contactTag(upiIdList,conNameList, txnIdList, ConCondition));
-    }
-    
-    //the below future is safe to be deleted as i have moved the content to queueable
-    //Future for Contact related tagging to Transaction record
-    @future
-    public static void contactTag( List<String> upiIdList, List<String> conNameList, List<String> txnIdList){
-        system.debug('caseTriggerHelper | contactTag | Future is running');
-        List<Contact> Con = [Select Id, LastName, Description, InComing__c, OutGoing__c , Balance__c from contact Limit 10000];
-        List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
-        List<String> newConUpiId = new List<String>(); // to hav new upiid alone
-        Map<String,String> newUpiAndConId = new Map<String,String>();//to New upiid and its future contact id.
-        List<Contact> ConNew = new List<Contact>();
-        Integer index = 0;
-        String upiIdTemp='';
-        //if(upiIdList.size()>0)
-        //List<List<Sobject>> searchResults = [FIND :upiIdList IN Description FIELDS RETURNING Contact(Id, LastName, Description)];
-        for ( String upiId: upiIdList){
-            if(txnIdList[index]!=null && upiId !=null){//only working on the Txn records that are saved into database.
-                system.debug('inside => if(txnIdList[index]!=\'null\'){//only working on the Txn records that are saved into database.');
-                //################### Work here!!!
-                upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
-                Boolean IsContactTagged = false;
-                for(Contact c:con){
-                    if(C.Description.contains(upiIdTemp)==true)
-                    {    
-                        system.debug('Inside For If');
-                        TList[index].Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
-                        IsContactTagged = true;
-                        System.debug('Txn Updated | '+C.Description+' || '+upiIdTemp+' || Full =  \\ '+ TList[index].UPI_ID__c);
-                        //to update amount field in contact
-                        if(TList[index].Type__c == 'Income')                                 
-                        {//ContactAmountUpdation.AmountUpdate2Contact( ''+C.Id, TList[index].Rent_Amount__c, 0);
-                             if (C.InComing__c == null)
-                                    C.InComing__c = TList[index].Rent_Amount__c;
-                             else
-                                    C.InComing__c +=TList[index].Rent_Amount__c;
-                                C.Balance__c = (C.Balance__c == null) ? TList[index].Rent_Amount__c : (C.Balance__c + TList[index].Rent_Amount__c);
-                        }
-                        else if(TList[index].Type__c == 'Expense') 
-                        {// ContactAmountUpdation.AmountUpdate2Contact( C.Id, 0,TList[index].Rent_Amount__c);
-                            if (C.OutGoing__c == null)
-                                C.OutGoing__c = TList[index].Rent_Amount__c;
-                            else
-                                C.OutGoing__c +=TList[index].Rent_Amount__c;
-                            C.Balance__c = (C.Balance__c == null) ? -TList[index].Rent_Amount__c : (C.Balance__c - TList[index].Rent_Amount__c);            
-                        }
-                        //break;
-                    }                     
-                }
-                if(!IsContactTagged){
-                   /*
-                    1. Create contact,
-					2. Add it to a common list 
-					3. Insert the contact	
-					4. after that, update the transaction with the new contact ID in bulk
-                    */
-                    if (newConUpiId.contains(TList[index].UPI_ID__c)){
-                        System.debug('Contact is not present, but previos record have this contact.');
-                        //Skip for now
-                    }
-                    else{
-                        Contact Cnew = new Contact();
-                        Cnew.Description='\''+TList[index].UPI_ID__c+'\',';
-                        //Cnew.HomePhone = Txn.UPI_ID__c;
-                        if(conNameList[index] == 'Not Found' || conNameList[index] == null || conNameList[index] == '')
-                            Cnew.LastName = ''+UpiIdTemp;
-                        else
-                            Cnew.LastName = conNameList[index];
-                        ConNew.add(Cnew);
-                        newConUpiId.add(TList[index].UPI_ID__c);
-                        newUpiAndConId.put(TList[index].UPI_ID__c,' ');                        
-                    }
-                }
-            }else{//if the respesctive Txn is Failed to save ito adtabase
-                system.debug('Else of if(txnIdList[index]!=\'null\')');
-            }
-            index++;
-        }        
-        //Time to Create a newContacts in Bulk
-        if(ConNew.size()>0)
-        {
-            Database.SaveResult[] results = Database.insert(ConNew,false);
-            for (Integer i =0; i<results.size(); i++){
-                if(results[i].isSuccess()){
-                    System.debug('Success record : '+ConNew[i].Id);
-                    newUpiAndConId.put(newConUpiId[i],''+ConNew[i].Id);
-                    //txnIdList.add(ConNew[i].Id);
-                    //txnIdList
-                    //caseTriggerHelper.txnDetails.txnIdList.add(tList[i].Id);
-                    //clist[i].Description = '< Transaction Record Created Successfully.  >'+clist[i].Description;
-                }
-                if(!results[i].isSuccess()){
-                    System.debug('Failed record : '+ConNew[i]);
-                }
-            }
-            //Contacts has been created!        
-        } 
+        Id jobId = System.enqueueJob(new contactTag(upiIdList, conNameList, txnIdList, ConCondition));
     }
 }
