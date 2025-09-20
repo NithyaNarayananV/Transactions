@@ -22,12 +22,14 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
     if(trigger.isInsert){
         List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
 		List<String> txnIdList = new List<String>();
+		List<Account> aList = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
 
         //List<contact> Con = [Select Id, Description from contact];
         Integer indexHash1 =  -1;
         Integer indexHash2 =  -1;
         //Integer indexTxnDecEnd =  txn.Description__C.length();                
-        string contactName = 'Not Found';   
+        string contactName = 'Not Found';
+        string TxnType ='';   
         //if there is some thing in Description, then it is Uploaded from Inspector.
         for (Transaction__c Txn: TList){
             String UpiTemp = '';
@@ -43,7 +45,9 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             else{//its from Bulk Upload
 				system.debug('onTransactionRecCreation | else part of => if(txn.Description__C.contains(#))//Its from Bulk Upload ');
 				transactionTriggerHelper.extractDescription(txn);
-                txn.name = ''+caseTriggerHelper.txnDetails.TxnType+' - '+Txn.Rent_Amount__c +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
+                TxnType  = (caseTriggerHelper.txnDetails.TxnType == 'Income' )? 'Cr':'Dt';// if its Credited - Checkbox will be Checked!
+
+                txn.name = ''+TxnType+' - '+Txn.Rent_Amount__c +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
                 //txn.Paid_Date__c = System.today();
                 //txn.Rent_Amount__c = AmountValue;
                 txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    
@@ -51,6 +55,12 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 system.debug('onTransactionRecCreation | caseTriggerHelper.txnDetails.refNo = '+caseTriggerHelper.txnDetails.refNo);
                 system.debug('onTransactionRecCreation | txn.RefNo__c = '+txn.RefNo__c);
                 txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;
+                for (Account a : aList){
+                    if(a.Name == caseTriggerHelper.txnDetails.bankAcc){
+                        txn.BankAccount__c = a.Id;
+                        break;
+                    }
+                }
                 //txn.Description__C = c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
             }
             txnIdList.add(Txn.Id);
