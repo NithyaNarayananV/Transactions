@@ -36,7 +36,10 @@ public with sharing class caseTriggerHelper {
         this.txnType	= getTxnType();	//this.txnType;
         this.refNo		= getRefNum();		//refNo!=null?refNo:this.refNo;
         this.txnMode 	= getPaymentMode();		//txnMode!=null?txnMode:this.txnMode;
-        this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
+        if (this.txnType=='Bal')
+         this.contactName = 'Balance Enquiry';
+        else
+            this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
         this.bankAcc	= getBankAccount();
         upiIdList.add(this.upiId);
         upiIdListTemp.add(this.UpiTemp);
@@ -59,7 +62,6 @@ public with sharing class caseTriggerHelper {
 
         ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
         //ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
-
         conNameList.add(this.contactName);
     }
 
@@ -178,7 +180,6 @@ public with sharing class caseTriggerHelper {
             this.refNo = this.refNo.substring(this.refNo.indexOf('#')+1,this.refNo.length());
             return mailBodyX;
         }
-        
         if(mailBodyX.contains('XX0690')==true || mailBodyX.contains('**'+A90)==true)
             return 'XX0690';
         else if(mailBodyX.contains('XX1686')==true || mailBodyX.contains('**'+A86)==true )

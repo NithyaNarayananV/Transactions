@@ -66,6 +66,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             txnIdList.add(Txn.Id);
         }            
         update TList;
+        
 		caseTriggerHelper.getContact(txnIdList);
 
             /*
