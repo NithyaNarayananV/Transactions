@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Index xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Custom_Index</fullName>
+    <fields>
+        <name>Created_DateTime__c</name>
+        <sortDirection>ASC</sortDirection>
+    </fields>
+    <label>Custom_Index</label>
+</Index>
