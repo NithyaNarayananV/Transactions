@@ -1,6 +1,6 @@
 <template>
   <lightning-card title="oldTransactionViewer" icon-name="custom:custom14">
-    Testing 8:41
+    Testing 12:12
     <div>
       <template if:true={hasData}>
         <div style="height: 300px;">
@@ -10,40 +10,6 @@
             columns={columns}>
           </lightning-datatable>
         </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Contact__c</th>
-              <th>UPI_ID__c</th>
-              <th>Amount__c</th>
-              <th>Name__c</th>
-              <th>Transaction_Date__c</th>
-              <th>Transaction__c</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template for:each={bigRecords.data} for:item="record" key={record.Id}>
-              <tr key={record.Id}>
-                <td>{record.Contact__c}</td>
-                <td>{record.UPI_ID__c}</td>
-                <td>{record.Amount__c}</td>
-                <td>{record.Name__c}</td>
-                <td>{record.Transaction_Date__c}</td>
-                <td>{record.Transaction__c}</td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </template>
-
-      <!-- Optional: sampleData table for testing -->
-      <template if:true={showSample}>
-        <lightning-datatable
-          key-field="Id"
-          data={sampleData}
-          columns={columns}>
-        </lightning-datatable>
       </template>
     </div>
   </lightning-card>
