@@ -4,9 +4,11 @@ public class contactTag implements Queueable {
 	private List<String> upiIdList = new List<String>(); // UPI ID list
     private List<String> conNameList = new List<String>(); //Contact Name
     private List<String> txnIdList = new List<String>(); // Transaction Id from main class
+
     List<Transaction__c> TList = new List<Transaction__c>(); // Transaction list
    	List<Transaction__c> TnewConList = new List<Transaction__c>(); // Transaction list
     List<Transaction__c> TnotTaggedList = new List<Transaction__c>(); // Transaction list
+
     private List<Contact> Con = new List<Contact>();// [Select Id, LastName, Description, InComing__c, OutGoing__c , Balance__c from contact Limit 10000];
     private Map<Id, Contact> contactMap = new Map<Id, Contact>();
     private List<String> newConUpiId = new List<String>(); // to hav new upiid alone
@@ -80,6 +82,7 @@ public class contactTag implements Queueable {
         newUpiAndConId.put(TList[index].UPI_ID__c,' ');
         indexConNew.put(TList[index].UPI_ID__c,indexCon);
     }
+
     public void execute(QueueableContext context) {
         system.debug('Testing inside execute');
         TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
@@ -171,6 +174,7 @@ public class contactTag implements Queueable {
         if (TnotTaggedList.size()>0) Database.SaveResult[] resultsNotTaggedTxn  = Database.update(TnotTaggedList,false);
       
         system.debug('Done with things -> please dont throw any error yaar');
+        Id jobId = system.enqueueJob(new CreateTxnBigObjectQueuable(this.txnIdList));
     	//ENd From Future Method
     }
 }

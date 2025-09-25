@@ -2,19 +2,19 @@ trigger onCaseRecordCreation on Case (after insert) {
     if(trigger.isInsert)
     {
         system.debug('trigger.isInsert');
-        List<Case> cList = [Select Id, Subject, CaseNumber,SuppliedPhone, Comments, Description from Case where Id IN :Trigger.new];
-        List<Transaction__C> tList = new List<Transaction__C>();
-		List<Account> aList = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
-        List<String> txnIdList = new List<String>();
+        List<Case> cList            = [Select Id, Subject, CaseNumber,SuppliedPhone, Comments, Description from Case where Id IN :Trigger.new];
+        List<Transaction__C> tList  = new List<Transaction__C>();
+		List<Account> aList         = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
+        List<String> txnIdList      = new List<String>();
         String TxnType ='';
         for (Case c:cList){
             String mailBody = ''+c.get('Description');
-            Decimal AmountValue=0.0;            
-            AmountValue=0;     
-            System.debug('*********');            
+            Decimal AmountValue = 0.0;
+            AmountValue = 0;
+            System.debug('*********');
             caseTriggerHelper.fetchMailData(mailBody);
             system.debug('onCaseRecordCreation | caseTriggerHelper.txnDetails ='+ caseTriggerHelper.txnDetails);
-            TxnType = caseTriggerHelper.txnDetails.txnType;
+            TxnType     = caseTriggerHelper.txnDetails.txnType;
             AmountValue = caseTriggerHelper.txnDetails.amount;
             
             if (caseTriggerHelper.txnDetails.txnType =='Bal')
@@ -29,7 +29,7 @@ trigger onCaseRecordCreation on Case (after insert) {
                     txn.BankAccount__c = a.Id;
                     break;
                 }
-            }                
+            }
             txn.name = ''+TxnType+' - '+AmountValue +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
             txn.Paid_Date__c = System.today();
             txn.Rent_Amount__c = AmountValue;
@@ -42,9 +42,9 @@ trigger onCaseRecordCreation on Case (after insert) {
             
             if 		(TxnType == 'Cr') 	txn.Type__c = 'Income';// if its Credited - Checkbox will be Checked!
             else if (TxnType == 'Dt') 	txn.Type__c = 'Expense';
-            else 						txn.Type__c = 'Balance';         
+            else 						txn.Type__c = 'Balance';
             
-            tList.add(txn);            
+            tList.add(txn);
         }//END 	for (Case c:cList)
         Database.SaveResult[] results = Database.insert(tList,false);
         for (Integer i =0; i<results.size(); i++){
@@ -66,12 +66,9 @@ trigger onCaseRecordCreation on Case (after insert) {
             }
         }
 		update cList;
-        
         //txnIdList
         caseTriggerHelper.getContact(txnIdList);
-        
 	}//END     if(trigger.isInsert)
-  
 }
     /* Moving the below part to On txn record creation trigger for more customization
     if (!WeeklyBalance){  
