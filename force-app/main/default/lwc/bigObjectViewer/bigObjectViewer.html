@@ -1,0 +1,22 @@
+<template>
+    <lightning-card title="bigObjectViewer" icon-name="custom:custom14">
+      <div class="slds-m-around_medium">
+        <p>Vannakam🙏🏼, Thalaiva!!</p>
+          <p> Sample - Testing - New 24-09-2025 11:47AM</p>
+
+      </div>
+      <div>
+        <template if:true = {hasData}>
+          <tr>
+             <th>Contact__c</th><th> UPI_ID__c</th><th> Amount__c</th><th> Name__c</th><th>Transaction_Date__c</th><th> Transaction__c  </th>
+          </tr>
+            <template for:each = {bigRecords.data} for:item = "record" key ={record.id}>
+              <tr key ={record.id}>
+                <th>{record.Contact__c}</th><th> {record.UPI_ID__c}</th><th> {record.Amount__c}</th><th> {record.Name__c}</th><th>{record.Transaction_Date__c}</th><th> {record.Transaction__c}  </th>
+              </tr>
+            </template>
+          </ul>
+        </template>
+      </div>
+    </lightning-card>
+  </template>

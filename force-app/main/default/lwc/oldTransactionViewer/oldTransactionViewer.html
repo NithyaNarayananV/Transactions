@@ -1,0 +1,31 @@
+<template>
+    <lightning-card title="oldTransactionViewer" icon-name="custom:custom14">
+      <div>
+        Testing 2:44
+        bigRecords = {bigRecords}
+        bigRecords.data = {bigRecords.data}
+        <template if:true = {hasData}>
+          <div style="height: 300px;">
+            <lightning-datatable
+              key-field="Id"
+              data={bigRecords.data}
+              columns={columns}>
+            </lightning-datatable>
+          </div>
+            <tr>
+              <th>Contact__c</th><th>UPI_ID__c</th><th> Amount__c</th><th> Name__c</th><th>Transaction_Date__c</th><th>Transaction__c</th>
+            </tr>
+            <template for:each = {bigRecords.data} for:item = "record" key ={record.id}>
+              <tr key ={record.id}>
+                <th>{record.Contact__c}</th><th>{record.UPI_ID__c}</th><th>{record.Amount__c}</th><th>{record.Name__c}</th><th>{record.Transaction_Date__c}</th><th>{record.Transaction__c}</th>
+              </tr>
+            </template>
+        </template>
+              <lightning-datatable
+        key-field="Id"
+        data={sampleData}
+        columns={columns}>
+      </lightning-datatable>
+      </div>
+    </lightning-card>
+  </template>
