@@ -1,10 +1,10 @@
-public with sharing class CreateTxnBigObjectQueuable {
+public with sharing class CreateTxnBigObjectQueuable implements Queueable {
+    List<String> TxnIDLt = new List<String>(); 
     List<Transaction__c> TList = new List<Transaction__c>();
-        public void createTxnInBigObject(List<Transaction__c> TxnList){
+    public void createTxnInBigObject(List<Transaction__c> TxnList){
         
         List<Transaction_BigData_V3__b> BtxnL = new List<Transaction_BigData_V3__b>();
         Transaction_BigData_V3__b Btxn = new Transaction_BigData_V3__b();
-
         for (Transaction__c txn : TxnList) {        
             Btxn.Account__c = txn.BankAccount__c;
             Btxn.Amount__c = txn.Rent_Amount__c;
@@ -22,10 +22,10 @@ public with sharing class CreateTxnBigObjectQueuable {
         }
     }
     public CreateTxnBigObjectQueuable(List<String> txnIdList) {
-           TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
-
+        this.TxnIDLt = txnIdList;
     }
     public void execute(QueueableContext context) {
+        this.TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :TxnIDLt];
         createTxnInBigObject(this.TList);
     }
 

@@ -37,13 +37,14 @@ public with sharing class caseTriggerHelper {
         this.refNo		= getRefNum();		//refNo!=null?refNo:this.refNo;
         this.txnMode 	= getPaymentMode();		//txnMode!=null?txnMode:this.txnMode;
         if (this.txnType=='Bal')
-         this.contactName = 'Balance Enquiry';
+            this.contactName = 'Balance Enquiry';
         else
             this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
         this.bankAcc	= getBankAccount();
         upiIdList.add(this.upiId);
         upiIdListTemp.add(this.UpiTemp);
         ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
+        System.debug('caseTriggerHelper | Constructor | ConCondition = '+ConCondition);
         //this.upiId.substring(0,this.upiId.indexOf('@'-1))
         conNameList.add(this.contactName);
     }
@@ -107,6 +108,8 @@ public with sharing class caseTriggerHelper {
                 this.UPIid = m.group();
                 System.debug('Found UPI ID: ' + this.UPIid);
             }
+            this.UpiTemp = this.UPIid.substring(0,UPIid.indexOf('@'));
+
         }
         return this.UPIid;
     }

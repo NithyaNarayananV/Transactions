@@ -6,6 +6,8 @@ public class contactTag implements Queueable {
     private List<String> txnIdList = new List<String>(); // Transaction Id from main class
 
     List<Transaction__c> TList = new List<Transaction__c>(); // Transaction list
+    List<Transaction__c> TRestList = new List<Transaction__c>(); // Transaction list
+
    	List<Transaction__c> TnewConList = new List<Transaction__c>(); // Transaction list
     List<Transaction__c> TnotTaggedList = new List<Transaction__c>(); // Transaction list
 
@@ -24,6 +26,7 @@ public class contactTag implements Queueable {
         system.debug('Testing inside Constructor');
         String query  = 'SELECT Id, LastName, Description, Upi_Ids__c, InComing__c, OutGoing__c , Balance__c FROM contact WHERE ';
         query+=string.join(ConCondition, ' OR ');
+        system.debug('contactTag > contactTag > Contact Query : '+query);
 
  		this.Con = Database.query(query);
         system.debug('contactTag | Query = '+query);
@@ -51,8 +54,7 @@ public class contactTag implements Queueable {
 		}
         return c;
     }
-    public contact ContactAmountUpdation(contact c, Integer Income , Integer Expense)
-    {       
+    public contact ContactAmountUpdation(contact c, Integer Income , Integer Expense){
         if(Income != 0){
             if (C.InComing__c == null) 
                 C.InComing__c = Income;
@@ -79,7 +81,7 @@ public class contactTag implements Queueable {
             Cnew.LastName = conNameList[index];
         ConNew.add(Cnew);
         newConUpiId.add(TList[index].UPI_ID__c);
-        newUpiAndConId.put(TList[index].UPI_ID__c,' ');
+        newUpiAndConId.put(TList[index].UPI_ID__c,''+index);
         indexConNew.put(TList[index].UPI_ID__c,indexCon);
     }
 
@@ -96,13 +98,14 @@ public class contactTag implements Queueable {
                 upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
                 Boolean IsContactTagged = false;
                 for(Contact c:con){
-                    if(C.Description!=null && ( C.Description.contains(upiIdTemp)==true ||  C.Upi_Ids__C.contains(upiIdTemp)==true )){    
+                    if( C.Description.contains(upiIdTemp)==true ||  C.Upi_Ids__C.contains(upiIdTemp)==true ){    
                         system.debug('Inside For If');
                         TList[index].Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
                         IsContactTagged = true;
                         System.debug('Txn Updated | '+C.Description+' || '+upiIdTemp+' || Full =  \\ '+ TList[index].UPI_ID__c);
                         //to update amount field in contact
                         c=ContactAmountUpdation(c);
+                        TRestList.add(TList[index]);
                         break;
                     }
                 }
@@ -134,6 +137,7 @@ public class contactTag implements Queueable {
             for (Integer i =0; i<results.size(); i++){
                 if(results[i].isSuccess()){
                     System.debug('Success record : '+ConNew[i].Id);
+                    //TList[newUpiAndConId.get(newConUpiId[i])]=
                     newUpiAndConId.put(newConUpiId[i],''+ConNew[i].Id);
                     indexConNew.put(''+ConNew[i].Id,indexConNew.get(''+newConUpiId[i])); //this will fetch the index using the upi id and tag it corresponding to contact id
                 }
@@ -168,15 +172,56 @@ public class contactTag implements Queueable {
         //Now update the Transaction and Contact
         system.debug('Now update the Transaction and Contact');
             
-        if (TList.size()>0)		     Database.SaveResult[] resultsTxn	        = Database.update(TList			,false);
-        if (TnewConList.size()>0) 	 Database.SaveResult[] resultsNewTxn        = Database.update(TnewConList	,false);
-		if (ConNew.size()>0) 		 Database.SaveResult[] resultsCon 	        = Database.update(ConNew		,false);
-        if (TnotTaggedList.size()>0) Database.SaveResult[] resultsNotTaggedTxn  = Database.update(TnotTaggedList,false);
-      
+        if (TRestList.size()>0)		    {
+            Database.SaveResult[] resultsTxn	        = Database.update(TRestList			,false);
+            if(resultsTxn.size()>0) {
+                for (Integer i =0; i<resultsTxn.size(); i++){
+                    if(resultsTxn[i].isSuccess()){
+                        System.debug('TRestList > Success record : '+TRestList[i].Id);
+                    }
+                    if(!resultsTxn[i].isSuccess()){System.debug('TRestList > Failed record : '+TRestList[i]);}
+                }
+            }
+        } 
+        if (TnewConList.size()>0) 	{
+            Database.SaveResult[] resultsNewTxn        = Database.update(TnewConList	,false);
+            if(resultsNewTxn.size()>0) {
+                for (Integer i =0; i<resultsNewTxn.size(); i++){
+                    if(resultsNewTxn[i].isSuccess()){
+                        System.debug('TnewConList > Success record : '+TnewConList[i].Id);
+                    }
+                    if(!resultsNewTxn[i].isSuccess()){System.debug('TnewConList > Failed record : '+TnewConList[i]);}
+                }
+            }
+        }            
+		if (ConNew.size()>0) 	{
+             Database.SaveResult[] resultsCon 	        = Database.update(ConNew		,false);
+            if(resultsCon.size()>0) {
+                for (Integer i =0; i<resultsCon.size(); i++){
+                    if(resultsCon[i].isSuccess()){
+                        System.debug('ConNew > Success record : '+ConNew[i].Id);
+                    }
+                    if(!resultsCon[i].isSuccess()){System.debug('ConNew > Failed record : '+ConNew[i]);}
+                }
+            }
+        }	
+        if (TnotTaggedList.size()>0) {
+            Database.SaveResult[] resultsNotTaggedTxn  = Database.update(TnotTaggedList,false);
+            if(resultsNotTaggedTxn.size()>0) {
+                for (Integer i =0; i<resultsNotTaggedTxn.size(); i++){
+                    if(resultsNotTaggedTxn[i].isSuccess()){
+                        System.debug('TnotTaggedList > Success record : '+TnotTaggedList[i].Id);
+                    }
+                    if(!resultsNotTaggedTxn[i].isSuccess()){System.debug('TnotTaggedList > Failed record : '+TnotTaggedList[i]);}
+                }
+            }
+        }
         system.debug('Done with things -> please dont throw any error yaar');
         Id jobId = system.enqueueJob(new CreateTxnBigObjectQueuable(this.txnIdList));
     	//ENd From Future Method
     }
+    
+
 }
 
 /*
