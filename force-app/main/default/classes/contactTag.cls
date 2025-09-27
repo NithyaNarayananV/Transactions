@@ -97,9 +97,12 @@ public class contactTag implements Queueable {
                 //################### Work here!!!
                 upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
                 Boolean IsContactTagged = false;
+                system.debug('contactTag > execute > upiIdTemp : '+upiIdTemp);
+                system.debug('contactTag > execute > BEFORE > for(Contact c:con) > con : '+con);
                 for(Contact c:con){
-                    if( C.Description.contains(upiIdTemp)==true ||  C.Upi_Ids__C.contains(upiIdTemp)==true ){    
-                        system.debug('Inside For If');
+                    system.debug('contactTag > execute > for(Contact c:con) > START >  c : '+c);
+                    if( (C.Description!=null && C.Description.contains(upiIdTemp)==true) ||  (C.Upi_Ids__c!=null &&C.Upi_Ids__c.contains(upiIdTemp)==true )){    
+                        system.debug('contactTag > execute > for(Contact c:con) >  Inside If');
                         TList[index].Contact__c = ''+C.Id; // If contact already Exist, Contact Id will be added to Transaction Record. 
                         IsContactTagged = true;
                         System.debug('Txn Updated | '+C.Description+' || '+upiIdTemp+' || Full =  \\ '+ TList[index].UPI_ID__c);
@@ -116,18 +119,16 @@ public class contactTag implements Queueable {
                     3. Insert the contact	
                     4. after that, update the transaction with the new contact ID in bulk
                     */
-                    if (newConUpiId.contains(TList[index].UPI_ID__c))
-                    {
+                    if (newConUpiId.contains(TList[index].UPI_ID__c)) {
                         System.debug('Contact is not present, but previos record have this contact.');
                         TnotTaggedList.add(TList[index]);
-                    }       
-                    else {
+                    } else {
                         TnewConList.add(TList[index]);
                         NewContactCreation();
                         indexCon++;
                     }
                 }
-            }else{//if the respesctive Txn is Failed to save ito adtabase
+            }else {//if the respesctive Txn is Failed to save ito adtabase
                 system.debug('Else of if(txnIdList[index]!=\'Failed\')');
             }
             index++;
@@ -137,13 +138,11 @@ public class contactTag implements Queueable {
             for (Integer i =0; i<results.size(); i++){
                 if(results[i].isSuccess()){
                     System.debug('Success record : '+ConNew[i].Id);
-                    //TList[newUpiAndConId.get(newConUpiId[i])]=
                     newUpiAndConId.put(newConUpiId[i],''+ConNew[i].Id);
                     indexConNew.put(''+ConNew[i].Id,indexConNew.get(''+newConUpiId[i])); //this will fetch the index using the upi id and tag it corresponding to contact id
                 }
                 if(!results[i].isSuccess()){System.debug('Failed record : '+ConNew[i]);}
             }
-            //Contacts has been created!
             system.debug('Contacts has been created!');
         }
         else
@@ -171,7 +170,6 @@ public class contactTag implements Queueable {
         }
         //Now update the Transaction and Contact
         system.debug('Now update the Transaction and Contact');
-            
         if (TRestList.size()>0)		    {
             Database.SaveResult[] resultsTxn	        = Database.update(TRestList			,false);
             if(resultsTxn.size()>0) {
@@ -217,11 +215,12 @@ public class contactTag implements Queueable {
             }
         }
         system.debug('Done with things -> please dont throw any error yaar');
+        system.debug('contactTag > execute > BEFORE > Id jobId = system.enqueueJob(new CreateTxnBigObjectQueuable(this.txnIdList));');
         Id jobId = system.enqueueJob(new CreateTxnBigObjectQueuable(this.txnIdList));
-    	//ENd From Future Method
+        system.debug('contactTag > execute > AFTER > enqueueJob > jobId : '+jobId);
+        system.debug('contactTag > execute > END');
+		//ENd From Future Method
     }
-    
-
 }
 
 /*

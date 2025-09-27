@@ -7,7 +7,10 @@ public class createRecordOnTxnBigObject {
         
         Transaction_BigData__b Btxn = new Transaction_BigData__b();
         Btxn.Transaction__C = IdT;
+        if(Name.Length()>30)
+            Name=Name.SubString(0,30);
         Btxn.Name__C = Name;
+        
         Btxn.Transaction_Date__c = Paid_Date;
         Btxn.created_DateTime__C  = DateTime.now();
         Btxn.Amount__C = Rent_Amount;

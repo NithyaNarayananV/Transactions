@@ -171,9 +171,9 @@ public with sharing class caseTriggerHelper {
         return 'Bal';
     }
     public String getBankAccount(){
-        String A90 = 'XX0690';
-        String A86 = 'XX1686';
-		String A87 = 'XX9987';
+        String A90 = '0690';
+        String A86 = '1686';
+		String A87 = '9987';
         system.debug('class : caseTriggerHelper | getBankAccount | this.refNo : '+this.refNo);
         system.debug('class : caseTriggerHelper | getBankAccount | mailBodyX : '+this.mailBodyX);
         if (this.refNo.contains('#'))//Then its from the Bulk Txn Upload;
@@ -183,11 +183,11 @@ public with sharing class caseTriggerHelper {
             this.refNo = this.refNo.substring(this.refNo.indexOf('#')+1,this.refNo.length());
             return mailBodyX;
         }
-        if(mailBodyX.contains('XX0690')==true || mailBodyX.contains('**'+A90)==true)
+        if		(mailBodyX.contains('XX'+A90)==true || mailBodyX.contains('**'+A90)==true || mailBodyX.contains(' '+A90+' ')==true )
             return 'XX0690';
-        else if(mailBodyX.contains('XX1686')==true || mailBodyX.contains('**'+A86)==true )
+        else if	(mailBodyX.contains('XX'+A86)==true || mailBodyX.contains('**'+A86)==true || mailBodyX.contains(' '+A86+' ')==true )
             return 'XX1686';  
-        else if(mailBodyX.contains('XX9987')==true || mailBodyX.contains('**'+A87)==true )
+        else if	(mailBodyX.contains('XX'+A87)==true || mailBodyX.contains('**'+A87)==true || mailBodyX.contains(' '+A87+' ')==true )
             return 'XX9987'; 
         //XX9987 
         return '000000';

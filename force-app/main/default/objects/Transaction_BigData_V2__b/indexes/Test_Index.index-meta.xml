@@ -14,7 +14,7 @@
         <sortDirection>ASC</sortDirection>
     </fields>
     <fields>
-        <name>Account__c</name>
+        <name>Upi_Id__c</name>
         <sortDirection>ASC</sortDirection>
     </fields>
     <fields>

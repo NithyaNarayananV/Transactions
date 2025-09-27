@@ -31,10 +31,12 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         string contactName = 'Not Found';
         string TxnType ='';   
         //if there is some thing in Description, then it is Uploaded from Inspector.
+        Boolean IsFromCase = false;
         for (Transaction__c Txn: TList){
             String UpiTemp = '';
             boolean IsContactTagged = false;
             if(txn.Description__C.contains('#')){//Its from Case
+                IsFromCase = true;
                 system.debug('onTransactionRecCreation | if(txn.Description__C.contains(#)){//Its from Case '+txn.Description__c);
                 indexHash1 =  txn.Description__C.indexOf('#');
                 indexHash2 =  txn.Description__C.indexOf('#',indexHash1+1);
@@ -47,7 +49,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
 				transactionTriggerHelper.extractDescription(txn);
                 TxnType  = (caseTriggerHelper.txnDetails.TxnType == 'Income' )? 'Cr':'Dt';// if its Credited - Checkbox will be Checked!
 
-                txn.name = ''+TxnType+' - '+Txn.Rent_Amount__c +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
+                txn.name = ''+TxnType+' - '+Txn.Rent_Amount__c +' - '+caseTriggerHelper.txnDetails.contactName;
                 //txn.Paid_Date__c = System.today();
                 //txn.Rent_Amount__c = AmountValue;
                 txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    
@@ -65,10 +67,18 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             }
             txnIdList.add(Txn.Id);
         }            
-        update TList;
-        
-		caseTriggerHelper.getContact(txnIdList);
+        update TList;   
+        system.debug('onTransactionRecCreation > AFTER > update TList > BEFORE >if(IsFromCase==false)');
 
+        if(IsFromCase==false)
+        {
+            system.debug('onTransactionRecCreation > if(IsFromCase==false) >  BEFORE > caseTriggerHelper.getContact(txnIdList);  > txnIdList : '+txnIdList);
+			caseTriggerHelper.getContact(txnIdList);
+            system.debug('onTransactionRecCreation > if(IsFromCase==false) >  AFTER > caseTriggerHelper.getContact(txnIdList);  > txnIdList : '+txnIdList);
+        }
+ 
+	}//END if(trigger.isInsert)
+}
             /*
             if (Txn.UPI_ID__c!=null)
             	UpiTemp = Txn.UPI_ID__c.substring(0,Txn.UPI_ID__c.indexOf('@'));
@@ -182,7 +192,3 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                     System.debug('Error : Case detilas issue ' + e.getMessage());
                 }
             }*/
-			
-        
-	}//END if(trigger.isInsert)
-}

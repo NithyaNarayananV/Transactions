@@ -67,8 +67,11 @@ trigger onCaseRecordCreation on Case (after insert) {
         }
 		update cList;
         //txnIdList
+        system.debug('onCaseRecordCreation > Before >  <Commented>caseTriggerHelper.getContact(txnIdList)');
+
         caseTriggerHelper.getContact(txnIdList);
-	}//END     if(trigger.isInsert)
+		system.debug('onCaseRecordCreation > After >  <Commented> caseTriggerHelper.getContact(txnIdList)');
+    }//END     if(trigger.isInsert)
 }
     /* Moving the below part to On txn record creation trigger for more customization
     if (!WeeklyBalance){  
