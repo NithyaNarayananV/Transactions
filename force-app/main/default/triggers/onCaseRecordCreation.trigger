@@ -30,7 +30,7 @@ trigger onCaseRecordCreation on Case (after insert) {
                     break;
                 }
             }
-            txn.name = ''+TxnType+' - '+AmountValue +' - ' +' | Name : '+caseTriggerHelper.txnDetails.contactName;
+            txn.name = ''+TxnType+' - '+AmountValue +' - '+caseTriggerHelper.txnDetails.contactName;
             txn.Paid_Date__c = System.today();
             txn.Rent_Amount__c = AmountValue;
             txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    

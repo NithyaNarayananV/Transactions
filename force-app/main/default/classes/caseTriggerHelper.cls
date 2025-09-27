@@ -68,6 +68,8 @@ public with sharing class caseTriggerHelper {
 
     
     public String getUPIidDesc(){
+        //if(this.desX.contains('UPI')){
+
         if(this.desX!=null && this.refNo !=null ){
             if (this.desX.substring(0,3) == 'UPI' && this.desX.contains('@')){
                 //txn.name = ''+TxnType+' - '+AmountValue +' - '+ UPIid ;
@@ -95,6 +97,11 @@ public with sharing class caseTriggerHelper {
 				system.debug('caseTriggerHelper | getUPIidDesc | this.contactName = '+this.contactName);
                 system.debug('caseTriggerHelper | getUPIidDesc | UPIid = '+UPIid);
                 system.debug('caseTriggerHelper | getUPIidDesc | this.txnMode = '+this.txnMode);
+            }else if(this.desX.contains('INTEREST PAID')){
+                this.txnMode = 'Other';
+                this.contactName = 'INTEREST PAID';
+                this.UPIid = 'INTEREST PAID';
+                this.UpiTemp = 'INTEREST PAID';
             }
         }            
         return this.UPIid;
