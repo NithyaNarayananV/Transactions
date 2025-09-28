@@ -1,4 +1,4 @@
-import {LightningElement, wire, api} from 'lwc';
+import {LightningElement, wire, api, track} from 'lwc';
 import getBigRecordList from '@salesforce/apex/BigObjectController.getTransactionBigDataRecordsforContact';
   const columns = [
     { label: 'Id', fieldName: 'Id' },
@@ -16,6 +16,8 @@ export default class oldTransactionViewer extends LightningElement {
   columns = columns;
 
 
+  @track sortBy;
+  @track sortDirection;
 
 
   @api recordId;
@@ -49,4 +51,26 @@ export default class oldTransactionViewer extends LightningElement {
   get balanceAmount(){
     return this.totalIncome - this.totalExpense;
   }
+
+
+  handleSort(event) {
+    const { fieldName: sortedBy, sortDirection } = event.detail;
+    this.sortBy = sortedBy;
+    this.sortDirection = sortDirection;
+    this.sortData(sortedBy, sortDirection);
+  }
+
+  sortData(fieldName, direction) {
+    let parseData = [...this.bigRecords.data];
+    let isReverse = direction === 'asc' ? 1 : -1;
+
+    parseData.sort((a, b) => {
+      let valA = a[fieldName] || '';
+      let valB = b[fieldName] || '';
+      return valA > valB ? isReverse : valA < valB ? -isReverse : 0;
+    });
+
+    this.bigRecords.data = parseData;
+  }
+
 }

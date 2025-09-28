@@ -39,7 +39,7 @@ public with sharing class caseTriggerHelper {
         if (this.txnType=='Bal')
             this.contactName = 'Balance Enquiry';
         else
-            this.contactName= getContactName(); 	//contactName!=null?contactName:this.contactName;
+            this.contactName = this.contactName !=null? this.contactName : getContactName() ; 	//contactName!=null?contactName:this.contactName;
         this.bankAcc	= getBankAccount();
         upiIdList.add(this.upiId);
         upiIdListTemp.add(this.UpiTemp);
@@ -116,16 +116,26 @@ public with sharing class caseTriggerHelper {
                 System.debug('Found UPI ID: ' + this.UPIid);
             }
             this.UpiTemp = this.UPIid.substring(0,UPIid.indexOf('@'));
-
+        }else if(this.mailBodyX.contains('towards')==true){
+            Integer startIndex = this.mailBodyX.indexOf('towards') + 8; // 8 is the length of 'towards' + 1 for space
+            Integer endIndex = this.mailBodyX.indexOf(' on ', startIndex);
+            this.UPIid = this.mailBodyX.substring(startIndex, endIndex).trim();
+            this.UpiTemp = this.UPIid;
+            this.contactName = this.UPIid;
         }
         return this.UPIid;
     }
     
     public string getContactName(){ 
-        Integer UPIidIndexPosition = this.mailBodyX.indexOf(this.UPIid);
-        Integer ContactNameIndex = UPIidIndexPosition + this.UPIid.length();
-        Integer EndIndexPosition = this.mailBodyX.indexOf(' on ');
-        contactName = this.mailBodyX.substring(ContactNameIndex, EndIndexPosition).trim();
+        if(this.mailBodyX.contains(this.UPIid)==true)
+        {
+            Integer UPIidIndexPosition = this.mailBodyX.indexOf(this.UPIid);
+            Integer ContactNameIndex = UPIidIndexPosition + this.UPIid.length();
+            Integer EndIndexPosition = this.mailBodyX.indexOf(' on ');
+            contactName = this.mailBodyX.substring(ContactNameIndex, EndIndexPosition).trim();
+        }else {
+            contactName = 'Unknown';
+        }
         System.debug('Extracted Contact Name: ' + contactName);
         return contactName;
     }

@@ -1,13 +1,25 @@
 <template>
   <lightning-card title="oldTransactionViewer" icon-name="custom:custom14">
-    Testing 03:02   ||  Total Income: {totalIncome} || Total Expense: {totalExpense} || Balance Amount: {balanceAmount}
+    Testing 04:45
+    <lightning-layout-item>
+        <p><strong>Total Income:</strong> ₹{totalIncome}</p>
+      </lightning-layout-item>
+      <lightning-layout-item>
+        <p><strong>Total Expense:</strong> ₹{totalExpense}</p>
+      </lightning-layout-item>
+      <lightning-layout-item>
+        <p><strong>Balance Amount:</strong> ₹{balanceAmount}</p>
+      </lightning-layout-item>
     <div>
       <template if:true={hasData}>
         <div style="height: 300px;">
           <lightning-datatable
             key-field="Id"
             data={bigRecords.data}
-            columns={columns}>
+            columns={columns}
+            sorted-by={sortBy}
+            sorted-direction={sortDirection}
+            onsort={handleSort}>
           </lightning-datatable>
         </div>
       </template>

@@ -10,7 +10,8 @@ public with sharing class CreateTxnBigObjectQueuable implements Queueable {
             Btxn.Account__c 	= txn.BankAccount__c;
             Btxn.Amount__c 		= txn.Rent_Amount__c;
             Btxn.Contact__c 	= txn.Contact__c;
-            Btxn.Mode__c 		= txn.Payment_Mode__c;
+            Btxn.Mode1__c       = 'NA';
+            Btxn.Mode__c 		= (txn.Payment_Mode__c.Length()>20) ? txn.Payment_Mode__c.SubString(0,20) : txn.Payment_Mode__c; // Name__C's Max limit is 30.
             Btxn.Name__c 		= (txn.Name.Length()>30) ? txn.Name.SubString(0,30) : txn.Name; // Name__C's Max limit is 30.
             Btxn.Note__c 		= 'NA';	// to update the Note given in the transaction. -> Future works
             Btxn.RefNumber__c 	= txn.RefNo__c;
