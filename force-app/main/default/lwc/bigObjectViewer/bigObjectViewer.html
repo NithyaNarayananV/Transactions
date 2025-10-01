@@ -2,21 +2,64 @@
     <lightning-card title="bigObjectViewer" icon-name="custom:custom14">
       <div class="slds-m-around_medium">
         <p>Vannakam🙏🏼, Thalaiva!!</p>
-          <p> Sample - Testing - New 24-09-2025 11:47AM</p>
-
+          <p> Sample - Testing - New 29-09-2025 12:40PM</p>
+      <lightning-layout-item>
+        <p><strong>Total Income:</strong> ₹{totalIncome}</p>
+      </lightning-layout-item>
+      <lightning-layout-item>
+        <p><strong>Total Expense:</strong> ₹{totalExpense}</p>
+      </lightning-layout-item>
+      <lightning-layout-item>
+        <p><strong>Balance Amount:</strong> ₹{balanceAmount}</p>
+      </lightning-layout-item>
+      <lightning-layout-item size="2" alignment-bump="left" padding="around-small">
+        <lightning-layout>
+            <lightning-layout-item size="2" padding="around-small">
+                <lightning-combobox name="filterBy" value={filterBy} label="Filter By"
+                options={FilterByOptions} onchange={filterbyHandler}></lightning-combobox>
+            </lightning-layout-item>
+            <lightning-layout-item size="4" padding="around-small">
+                <lightning-input type="text" label="Filter" onkeyup={filterHandler}></lightning-input>
+            </lightning-layout-item>
+        </lightning-layout>
+        <lightning-combobox 
+          name="sortBy" 
+          value={sortedBy} 
+          label="Sort By" 
+          options={FilterByOptions} 
+          onchange={sortHandler}> 
+        </lightning-combobox>
+      </lightning-layout-item>
       </div>
       <div>
-        <template if:true = {hasData}>
-          <tr>
-             <th>Contact__c</th><th> UPI_ID__c</th><th> Amount__c</th><th> Name__c</th><th>Transaction_Date__c</th><th> Transaction__c  </th>
-          </tr>
-            <template for:each = {bigRecords.data} for:item = "record" key ={record.id}>
-              <tr key ={record.id}>
-                <th>{record.Contact__c}</th><th> {record.UPI_ID__c}</th><th> {record.Amount__c}</th><th> {record.Name__c}</th><th>{record.Transaction_Date__c}</th><th> {record.Transaction__c}  </th>
-              </tr>
-            </template>
-          </ul>
-        </template>
+
+          <div style="height: 300px;">
+            <lightning-datatable
+              key-field="Id"
+              data={filteredData}
+              columns={columns}>
+            </lightning-datatable>
+          </div>
       </div>
+      <table>
+        <thead>
+            <tr>
+                <template for:each={columns} for:item="heading">
+                    <th key={heading}>{heading}</th>
+                </template>
+            </tr>
+        </thead>
+        <tbody>
+            <template for:each={filteredData} for:item="data">
+                <tr key={data.Id}>
+                    <td>{data.Transaction_Date__c}</td>
+                    <td>{data.Name}</td>
+                    <td>{data.Amount__c}</td>
+                    <td>{data.Upi_Id__c}</td>
+                </tr>
+            </template>
+            
+        </tbody>
+            </table>
     </lightning-card>
   </template>

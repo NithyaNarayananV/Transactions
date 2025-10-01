@@ -18,7 +18,7 @@
         <sortDirection>ASC</sortDirection>
     </fields>
     <fields>
-        <name>Mode__c</name>
+        <name>Mode1__c</name>
         <sortDirection>ASC</sortDirection>
     </fields>
     <label>Test_Index</label>

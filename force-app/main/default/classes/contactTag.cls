@@ -74,9 +74,6 @@ public class contactTag implements Queueable {
         Contact Cnew = new Contact();
         //Cnew.Description='\''+TList[index].UPI_ID__c+'\',';
         Cnew.Upi_ids__c=''+TList[index].UPI_ID__c+',';
-        Cnew.InComing__c = 0;
-        Cnew.OutGoing__c = 0;
-        Cnew.Balance__c = 0;
         //Cnew.HomePhone = Txn.UPI_ID__c;
         if(conNameList[index] == 'Not Found' || conNameList[index] == null || conNameList[index] == '')
             Cnew.LastName = ''+UpiIdTemp;
@@ -87,6 +84,7 @@ public class contactTag implements Queueable {
         newUpiAndConId.put(TList[index].UPI_ID__c,''+index);
         indexConNew.put(TList[index].UPI_ID__c,indexCon);
     }
+
     public void execute(QueueableContext context) {
         system.debug('Testing inside execute');
         TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :txnIdList];
@@ -101,6 +99,7 @@ public class contactTag implements Queueable {
                     upiIdTemp = upiId.substring(0,upiId.indexOf('@'));
                 else 
                     upiIdTemp = upiId;
+                    
                 Boolean IsContactTagged = false;
                 system.debug('contactTag > execute > upiIdTemp : '+upiIdTemp);
                 system.debug('contactTag > execute > BEFORE > for(Contact c:con) > con : '+con);
