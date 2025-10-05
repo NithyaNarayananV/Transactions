@@ -6,10 +6,10 @@ import getBigRecordList from '@salesforce/apex/BigObjectController.getTransactio
   { label: 'Amount',           value: 'Amount__c',           fieldName: 'Amount__c' },
   { label: 'UPI ID',           value: 'Upi_Id__c',           fieldName: 'Upi_Id__c' },
   { label: 'Name',             value: 'Name__c',             fieldName: 'Name__c' },
-  { label: 'Created Date',     value: 'CreatedDate',         fieldName: 'CreatedDate' },
+ // { label: 'Created Date',     value: 'CreatedDate',         fieldName: 'CreatedDate' },
   { label: 'Type',             value: 'Type__c',             fieldName: 'Type__c' },
   { label: 'Mode',             value: 'Mode__c',             fieldName: 'Mode__c' },
-  { label: 'Transaction ID',   value: 'Transaction__c',      fieldName: 'Transaction__c' }
+//  { label: 'Transaction ID',   value: 'Transaction__c',      fieldName: 'Transaction__c' }
   ];
 
 export default class bigObjectViewer extends LightningElement {
@@ -19,7 +19,18 @@ export default class bigObjectViewer extends LightningElement {
   bigRecords=[]
   @track filteredData=[]
   timer
-  @track filterBy;
+  @track filterBy='Name__c';
+    sortDirection = 'desc'; // default value
+
+    sortOptions = [
+        { label: 'Ascending', value: 'asc' },
+        { label: 'Descending', value: 'desc' }
+    ];
+handleSortDirectionChange(event) {
+    this.sortDirection = event.detail.value;
+    this.filteredData = this.sortBy(this.filteredData)
+    console.log('Sort direction changed to: ' + this.sortDirection);
+}
   @wire(getBigRecordList)
   bigRecordHandler({data,error}){
     if(data){
@@ -27,6 +38,7 @@ export default class bigObjectViewer extends LightningElement {
       this.fullData = data
       this.bigRecords=data;
       this.filteredData=data;
+      this.fullTableData=data;
     }
     if(error){
       console.log('Error : '+error);
@@ -34,12 +46,11 @@ export default class bigObjectViewer extends LightningElement {
   }
 
   ///*/Sort Handler
-  sortedBy = 'Name'
-  sortDirection='asc'
+  sortedBy = 'Transaction_Date__c'
   //this.bigRecords.data
   sortHandler(event){
     this.sortedBy = event.target.value;
-    this.bigRecords = this.sortBy(this.bigRecords)
+    this.filteredData = this.sortBy(this.filteredData)
     console.log('Sorted by '+this.sortedBy)
   }
   sortBy(data){
@@ -64,9 +75,10 @@ export default class bigObjectViewer extends LightningElement {
      console.log('Selected filter event:', event);
 
   }
-
+  filterWord=null
   filterHandler(event){
-    const {value} = event.target
+    const value = event.target.value;
+    this.filterWord = true;
     window.clearTimeout(this.timer)
     if(value)
     {
@@ -83,9 +95,13 @@ export default class bigObjectViewer extends LightningElement {
             return val.toLowerCase().includes(value)
           }
         })
-      }, 500)   
+      }, 500)
+      this.filteredData = this.sortBy(this.filteredData)
+
     } else {
       this.filteredData = [...this.fullTableData]
+          this.filteredData = this.sortBy(this.filteredData)
+
     }
   }
   get totalIncome(){
@@ -112,5 +128,30 @@ export default class bigObjectViewer extends LightningElement {
   }
   get balanceAmount(){
     return this.totalIncome - this.totalExpense;
+  }
+  get filterIncome(){
+    let Income = 0;
+    if(this.filteredData){
+      this.filteredData.forEach(record=>{
+        if(record.Type__c === 'Income'){
+          Income += record.Amount__c;
+        }
+      });
+    }
+    return Income;
+  }
+  get filterExpense(){
+    let Expense = 0;
+    if(this.filteredData){
+      this.filteredData.forEach(record=>{
+        if(record.Type__c === 'Expense'){
+          Expense += record.Amount__c;
+        }
+      });
+    }
+    return Expense;
+  }
+  get filterAmount(){
+    return this.filterIncome - this.filterExpense;
   }
 }
