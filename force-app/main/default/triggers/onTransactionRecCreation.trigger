@@ -43,6 +43,9 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 contactName = Txn.Description__C.substring(indexHash1+1, indexHash2);                
                 //Integer indexTxnDecEnd =  txn.Description__C.length();                
                 //(Updated in the Case Trigger)Txn.Payment_Mode__c = Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd)=='Not Found'?null:Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd);
+            }else if (txn.RefNo__c== null || txn.RefNo__c.length()==0) { //If Reference number is empty, then its from Bulk Upload for Txn via Credit Card. (Types : Credit Card , UPI Credit Card)
+                System.debug('onTransactionRecCreation > for (Transaction__c Txn: TList) > else if (txn.RefNo__c== null || txn.RefNo__c.length()==0) Bulk Upload for Credit Card Txn ');
+
             }
             else{//its from Bulk Upload
 				system.debug('onTransactionRecCreation | else part of => if(txn.Description__C.contains(#))//Its from Bulk Upload ');

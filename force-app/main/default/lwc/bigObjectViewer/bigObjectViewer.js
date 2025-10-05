@@ -1,16 +1,15 @@
 import {LightningElement, wire, api, track} from 'lwc';
 import getBigRecordList from '@salesforce/apex/BigObjectController.getTransactionBigDataRecords';
   const columns = [
-    { label: 'Id', fieldName: 'Id' },
-    //{ label: 'Contact Id', fieldName: 'Contact__c'},
-    { label: 'Transaction Date', fieldName: 'Transaction_Date__c'},
-    { label: 'Amount', fieldName: 'Amount__c'},
-    { label: 'UPI ID', fieldName: 'Upi_Id__c' },
-    { label: 'Name', fieldName: 'Name__c'},
-    { label: 'Created Date', fieldName: 'CreatedDate'},
-    { label: 'Type', fieldName: 'Type__c'},
-    { label: 'Mode', fieldName: 'Mode__c'},
-    { label: 'Transaction ID', fieldName: 'Transaction__c'},
+  { label: 'Id',                value: 'Id',                fieldName: 'Id' },
+  { label: 'Transaction Date', value: 'Transaction_Date__c', fieldName: 'Transaction_Date__c' },
+  { label: 'Amount',           value: 'Amount__c',           fieldName: 'Amount__c' },
+  { label: 'UPI ID',           value: 'Upi_Id__c',           fieldName: 'Upi_Id__c' },
+  { label: 'Name',             value: 'Name__c',             fieldName: 'Name__c' },
+  { label: 'Created Date',     value: 'CreatedDate',         fieldName: 'CreatedDate' },
+  { label: 'Type',             value: 'Type__c',             fieldName: 'Type__c' },
+  { label: 'Mode',             value: 'Mode__c',             fieldName: 'Mode__c' },
+  { label: 'Transaction ID',   value: 'Transaction__c',      fieldName: 'Transaction__c' }
   ];
 
 export default class bigObjectViewer extends LightningElement {
@@ -20,7 +19,7 @@ export default class bigObjectViewer extends LightningElement {
   bigRecords=[]
   @track filteredData=[]
   timer
-  filterBy="Name"
+  @track filterBy;
   @wire(getBigRecordList)
   bigRecordHandler({data,error}){
     if(data){
@@ -34,15 +33,17 @@ export default class bigObjectViewer extends LightningElement {
     }
   }
 
-  /*/Sort Handler
+  ///*/Sort Handler
   sortedBy = 'Name'
   sortDirection='asc'
   //this.bigRecords.data
   sortHandler(event){
     this.sortedBy = event.target.value;
     this.bigRecords = this.sortBy(this.bigRecords)
+    console.log('Sorted by '+this.sortedBy)
   }
   sortBy(data){
+   console.log('In sortBy method')
     const cloneData = [...data]
     cloneData.sort((a,b)=>{
       if(a[this.sortedBy]=== b[this.sortedBy]){
@@ -53,10 +54,17 @@ export default class bigObjectViewer extends LightningElement {
       a[this.sortedBy] < b[this.sortedBy] ? -1:1 
     })
     return cloneData
-  }*/
-  filterbyHandler(event){
-    this.filterBy = event.target.value
   }
+  //*/
+  filterbyHandler(event){
+     this.filterBy = event.detail.value;
+     console.log('Selected filter field:', this.filterBy);
+     console.log('Selected filter event.detail.value;:', event.detail.value);
+     console.log('Selected filter event.target.value;:', event.target.value);
+     console.log('Selected filter event:', event);
+
+  }
+
   filterHandler(event){
     const {value} = event.target
     window.clearTimeout(this.timer)
