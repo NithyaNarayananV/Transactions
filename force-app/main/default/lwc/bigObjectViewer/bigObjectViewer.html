@@ -1,11 +1,11 @@
 <template>
-    <lightning-card title="bigObjectViewer" icon-name="custom:custom14">
-      <div class="slds-m-around_medium">
-        <lightning-layout-item size="4" alignment-bump="left" padding="around-small">
-          <lightning-layout>
-          <lightning-layout-item size="4" padding="around-small">
+  <lightning-card title="bigObjectViewer" icon-name="custom:custom14">
+    <div class="slds-m-around_medium">
+      <lightning-layout-item size="4" alignment-bump="left" padding="around-small">
+        <lightning-layout>
+          <lightning-layout-item size="2" padding="around-small">
             <p>Vannakam🙏🏼, Thalaiva!!</p>
-            <p> Sample - Testing - New 05-10-2025 10:07PM</p>
+            <p> Sample - Testing - New 07-10-2025 12:24PM </p>
             <lightning-layout-item>
               <p><strong>Total Income:</strong> ₹{totalIncome}</p>
             </lightning-layout-item>
@@ -19,66 +19,75 @@
           <template if:true={filterWord}>
             <lightning-layout-item size="2" padding="around-small">
               <lightning-layout-item>
-                <p><strong>Spend To {filterWord}:</strong> ₹{filterIncome}</p>
+                <p><strong>Spend To {filterWord}:</strong> ₹{filterExpense}</p>
               </lightning-layout-item>
               <lightning-layout-item>
-                <p><strong>Taken From {filterWord}:</strong> ₹{filterExpense}</p>
+                <p><strong>Taken From {filterWord}:</strong> ₹{filterIncome}</p>
               </lightning-layout-item>
               <lightning-layout-item>
                 <p><strong>Net Txn {filterWord}:</strong> ₹{filterAmount}</p>
               </lightning-layout-item>  
             </lightning-layout-item> 
-        </template>
-  </lightning-layout>
-</lightning-layout-item>
-          
-
-        <lightning-layout-item size="2" alignment-bump="left" padding="around-small">
-          <lightning-layout>
-            <lightning-layout-item size="2" padding="around-small">
-                <lightning-combobox 
-                  name="filterBy"  
-                  value={filterBy} 
-                  label="Filter By"
-                  options={FilterByOptions} 
-                  onchange={filterbyHandler}>
-                </lightning-combobox>
-              </lightning-layout-item>
-              <lightning-layout-item size="4" padding="around-small">
-                <lightning-input 
-                  type="text" 
-                  label="Filter"
-                  onkeyup={filterHandler}>
-                </lightning-input>
-              </lightning-layout-item>
-              <lightning-layout-item size="4" padding="around-small">
-                <lightning-combobox 
-                  name="sortBy" 
-                  value={sortedBy} 
-                  label="Sort By" 
-                  options={FilterByOptions} 
-                  onchange={sortHandler}> 
-                </lightning-combobox>
-              </lightning-layout-item>
-              <lightning-radio-group
-                name="sortDirection"
-                label="Sort Direction"
-                options={sortOptions}
-                value={sortDirection}
-                type="radio"
-                onchange={handleSortDirectionChange}>
-            </lightning-radio-group>
-          </lightning-layout>
-        </lightning-layout-item>
+          </template>
+        </lightning-layout>
+      </lightning-layout-item>
+      <lightning-layout-item size="4" alignment-bump="left" padding="around-small">
+        <lightning-layout>
+					<lightning-layout-item size="1" padding="around-small">
+						<lightning-radio-group
+							name="typeOfTransaction"
+							label="Transaction Type"
+							options={typeOptions}
+              value={selectedTransactionType}
+							type="radio"
+							onchange={handleTransactionTypeChange}>
+						</lightning-radio-group>
+					</lightning-layout-item>
+          <lightning-layout-item size="2" padding="around-small">
+            <lightning-combobox 
+              name="filterBy"  
+              value={filterBy} 
+              label="Filter By"
+              options={FilterByOptions} 
+              onchange={filterbyHandler}>
+            </lightning-combobox>
+          </lightning-layout-item>
+          <lightning-layout-item size="4" padding="around-small">
+            <lightning-input 
+              type="text" 
+              label="Filter"
+              onkeyup={filterHandler}>
+            </lightning-input>
+          </lightning-layout-item>
+          <lightning-layout-item size="4" padding="around-small">
+            <lightning-combobox 
+              name="sortBy" 
+              value={sortedBy} 
+              label="Sort By" 
+              options={FilterByOptions} 
+              onchange={sortHandler}> 
+            </lightning-combobox>
+          </lightning-layout-item>
+          <lightning-radio-group
+            name="sortDirection"
+            label="Sort Direction"
+            options={sortOptions}
+            value={sortDirection}
+            type="radio"
+            onchange={handleSortDirectionChange}>
+        </lightning-radio-group>
+        </lightning-layout>
+      </lightning-layout-item>
+	  
+    </div>
+    <div>
+      <div style="border:3px solit #000; padding: 10px; height: 300px;">
+        <lightning-datatable
+          key-field="Id"
+          data={filteredData}
+          columns={columns}>
+        </lightning-datatable>
       </div>
-      <div>
-        <div style="height: 300px;">
-          <lightning-datatable
-            key-field="Id"
-            data={filteredData}
-            columns={columns}>
-          </lightning-datatable>
-        </div>
-      </div>
-    </lightning-card>
-  </template>
+    </div>
+  </lightning-card>
+</template>
