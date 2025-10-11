@@ -1,26 +1,126 @@
 <template>
   <lightning-card title="transactionRecordCreation" icon-name="custom:custom14">
-   <div>
-    This is basically to initiate a Flow on a button click
-    Plan to work on the screen flow to Lwc to create a transaction recrod creations
-      1. LWC Button to call a flow
-      2. On Button, Screen Flow
-      3. LWC to be embedded in the Screen Flow.\
-    
+    <div class="sldx-m-bottom_medium" style="padding:20px; border: 2px dashed blue; ">
+      <div>
+        <p>Vannakam🙏🏼, Thalaiva!!</p>
+        <p> Sample - Testing - New 10-10-2025 12:10PM </p>
+        <p> Sample - Testing - Time Now : {timeNow} </p>
 
-      This needs to have the all the input fields for a transaction record creation
-      Fields : 
-      Name
-      Payment_Mode__c
-      Rent_Amount__c
-      Contact__c
-      Paid_Date__c
-      UPI_ID__c
-      Type__c
-      BankAccount__c
-      Description__c
-      RefNo__c
-      
-   </div>
+      Hello 
+      <p><strong> This is a LWC Componenet, this should be called from a Screen Flow</strong></p>
+
+
+        This is basically to initiate a Flow on a button click
+        Plan to work on the screen flow to Lwc to create a transaction recrod creations
+          1. LWC Button to call a flow
+          2. On Button, Screen Flow
+          3. LWC to be embedded in the Screen Flow.\
+        
+
+          This needs to have the all the input fields for a transaction record creation
+          Fields : 
+          Name
+          Payment_Mode__c
+          Rent_Amount__c
+          Contact__c
+          Paid_Date__c
+          UPI_ID__c
+          Type__c
+          BankAccount__c
+          Description__c
+          RefNo__c        
+      </div>
+      <lightning-layout multiple-rows>
+        <lightning-layout-item size="6" padding="around-medium">
+          <div>Left Side</div>
+
+          <lightning-input 
+            label="Amount"
+            type="number"
+            value={amount}
+            step="0.01"
+            placeholder="10.00? 20.99? ..? Enter Amount here"
+            onchange={amountHandler}
+            class="inputFields">
+          </lightning-input>
+          
+          <template if:true={isIncome}>
+            <lightning-input 
+              label="Paid to"
+              value={contactName}
+              placeholder="Whom did you pay?"
+              onchange={contactNameUpdate}
+              class="inputFields">
+            </lightning-input>
+          </template>
+          <template if:false={isIncome}>
+            <lightning-input 
+              label="Received from"
+              placeholder="Who gave you?"
+              value={contactName}
+              onchange={contactNameUpdate}
+              class="inputFields">
+            </lightning-input>
+          </template>
+          <template if:true={isUpi}>
+            <lightning-input 
+              label="Upi Id"
+              placeholder="eg: nina@phonepe"
+              value={upiId}
+              
+              class="inputFields">
+            </lightning-input>
+          </template>
+          <lightning-input 
+              label="Transaction Date"
+              type="date"
+              value={paymentDate}
+              class="inputFields">
+            </lightning-input>
+            <lightning-input 
+              label="Note:"
+              type="text"
+              value={note}
+              onchange={noteHandler}
+              class="inputFields">
+            </lightning-input>
+        </lightning-layout-item>
+        <lightning-layout-item size="6" padding="around-medium">
+          <div>Right Side</div>
+          <lightning-radio-group 
+            name="namePaymentMode"
+            label="Payment Mode"
+            value={paymentMode}
+            disabled=true
+            options={paymentModePickList}
+            onchange={modeChangeHandler}
+            type="radio"
+            class="inputFields">
+          </lightning-radio-group>
+          <lightning-radio-group 
+            name="namePaymentType"
+            label="Type"
+            value={type}
+            options={typePickList}
+            type="radio"
+            class="inputFields"
+            onchange={typeChangeHandler}>
+          </lightning-radio-group>
+
+        </lightning-layout-item>
+        <div>
+
+          Transaction Name will show 
+          transactionName = {transactionName}
+
+        </div>
+
+        <lightning-button 
+          label="Save : Suppoosed to Save the Record"
+          onclick={saveHandler}
+          variant="brand">
+        </lightning-button>
+      </lightning-layout>
+    </div>
   </lightning-card>
 </template>
