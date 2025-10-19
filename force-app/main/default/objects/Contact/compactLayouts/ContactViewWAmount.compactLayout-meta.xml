@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>ContactViewWAmount</fullName>
+    <fields>Name</fields>
+    <fields>Phone</fields>
+    <fields>MobilePhone</fields>
+    <fields>InComing__c</fields>
+    <fields>OutGoing__c</fields>
+    <fields>Balance__c</fields>
+    <label>ContactViewWAmount</label>
+</CompactLayout>
