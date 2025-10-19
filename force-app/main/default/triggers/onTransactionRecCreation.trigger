@@ -32,6 +32,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         string TxnType ='';   
         //if there is some thing in Description, then it is Uploaded from Inspector.
         Boolean IsFromCase = false;
+        Boolean IsFromBulkUpload = false;
         for (Transaction__c Txn: TList){
             String UpiTemp = '';
             boolean IsContactTagged = false;
@@ -43,11 +44,13 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
                 contactName = Txn.Description__C.substring(indexHash1+1, indexHash2);                
                 //Integer indexTxnDecEnd =  txn.Description__C.length();                
                 //(Updated in the Case Trigger)Txn.Payment_Mode__c = Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd)=='Not Found'?null:Txn.Description__C.substring(indexHash2+1,indexTxnDecEnd);
-            }else if (txn.RefNo__c== null || txn.RefNo__c.length()==0) { //If Reference number is empty, then its from Bulk Upload for Txn via Credit Card. (Types : Credit Card , UPI Credit Card)
-                System.debug('onTransactionRecCreation > for (Transaction__c Txn: TList) > else if (txn.RefNo__c== null || txn.RefNo__c.length()==0) Bulk Upload for Credit Card Txn ');
+            }
+            else if(txn.Description__C.contains('$')){
+                system.debug('Should be from LWC compoenent.');
 
             }
             else{//its from Bulk Upload
+                IsFromBulkUpload=true;
 				system.debug('onTransactionRecCreation | else part of => if(txn.Description__C.contains(#))//Its from Bulk Upload ');
 				transactionTriggerHelper.extractDescription(txn);
                 TxnType  = (caseTriggerHelper.txnDetails.TxnType == 'Income' )? 'Cr':'Dt';// if its Credited - Checkbox will be Checked!
@@ -73,7 +76,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         update TList;   
         system.debug('onTransactionRecCreation > AFTER > update TList > BEFORE >if(IsFromCase==false)');
 
-        if(IsFromCase==false)
+        if(IsFromBulkUpload)
         {
             system.debug('onTransactionRecCreation > if(IsFromCase==false) >  BEFORE > caseTriggerHelper.getContact(txnIdList);  > txnIdList : '+txnIdList);
 			caseTriggerHelper.getContact(txnIdList);

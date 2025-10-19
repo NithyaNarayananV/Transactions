@@ -37,7 +37,9 @@ public class transactionTriggerHelper {
                 also vefiry the reference 
                 */
                 
-            }else{system.debug('onTransactionRecCreation | UPI not having @');
+            }
+
+            else{system.debug('onTransactionRecCreation | UPI not having @');
                 if(txn.Description__C.substring(0,3)=='UPI' && (txn.RefNo__c==null || txn.RefNo__c.length()==0)){ // Bulk Upload form CreditCard Txn.
                     System.debug('onTransactionRecCreation > extractDescription > Inside CreditCard Txn Upload > UPI not having @ and not having Ref No');
                     
@@ -60,6 +62,9 @@ public class transactionTriggerHelper {
             //Create a Contact for Interest Paid. and add this to it.
         }else if(txn.Description__C.contains('FD THROUGH')){
             system.debug('onTransactionRecCreation | FD THROUGH');
+        }
+        else if(txn.Description__C.contains('$')){
+            system.debug('Should be from LWC compoenent.');
         }
               //Contact Tagging needs to be performed belo this.
         
