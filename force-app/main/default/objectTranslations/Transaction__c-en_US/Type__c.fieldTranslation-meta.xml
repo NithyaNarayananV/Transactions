@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomFieldTranslation xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label><!-- Type --></label>
+    <name>Type__c</name>
+    <picklistValues>
+        <masterLabel>Balance</masterLabel>
+        <translation><!-- Balance --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Expense</masterLabel>
+        <translation><!-- Expense --></translation>
+    </picklistValues>
+    <picklistValues>
+        <masterLabel>Income</masterLabel>
+        <translation><!-- Income --></translation>
+    </picklistValues>
+</CustomFieldTranslation>

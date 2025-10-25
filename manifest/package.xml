@@ -1,40 +1,52 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
-        <members>*</members>
+   
+   <types>
+        <members>BigObjectController</members>
+        <members>ContactAmountUpdation</members>
+        <members>CreateTxnBigObjectQueuable</members>
+        <members>caseTriggerHelper</members>
+        <members>completeFlow</members>
+        <members>contactTag</members>
+        <members>createRecord_New</members>
+        <members>dailyCleanUp</members>
+        <members>extractAmount</members>
+        <members>masterFuture</members>
+        <members>transactionTriggerHelper</members>
         <name>ApexClass</name>
     </types>
     <types>
-        <members>*</members>
-        <name>ApexComponent</name>
+        <members>HDFC</members>
+        <name>CustomApplication</name>
     </types>
     <types>
-        <members>*</members>
-        <name>ApexPage</name>
+        <members>Account</members>
+        <members>Case</members>
+        <members>Contact</members>
+        <members>Transaction_BigData_V3__b</members>
+        <members>Transaction__c</members>
+        <name>CustomObject</name>
     </types>
     <types>
-        <members>*</members>
-        <name>ApexTestSuite</name>
+        <members>Transaction_BigData_V3__b-en_US</members>
+        <members>Transaction__c-en_US</members>
+        <name>CustomObjectTranslation</name>
     </types>
     <types>
-        <members>*</members>
-        <name>ApexTrigger</name>
+        <members>Overview</members>
+        <members>Transaction__c</members>
+        <name>CustomTab</name>
     </types>
     <types>
-        <members>*</members>
-        <name>AuraDefinitionBundle</name>
-    </types>
-    <types>
-        <members>*</members>
+        <members>bigObjectViewer</members>
+        <members>oldTransactionViewer</members>
+        <members>screenFlowInitialization</members>
+        <members>transactionRecordCreation</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
-        <members>*</members>
-        <name>StaticResource</name>
-    </types>
-    <types>
+        <members>Admin</members>
         <name>Profile</name>
-        <members>*</members>
     </types>
-    <version>62.0</version>
+    <version>63.0</version>
 </Package>
