@@ -23,7 +23,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         List<Transaction__c> TList = [Select Id, Description__C, RefNo__c, Name, BankAccount__c, Payment_Mode__c, Paid_Date__c, Rent_Amount__c,UPI_ID__c, Type__c, Contact__c from Transaction__c where Id IN :Trigger.new];
 		List<String> txnIdList = new List<String>();
 		List<Account> aList = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
-
+		//List<Account> aList = [Select id, Name from Account where Type ='Bank'];
         //List<contact> Con = [Select Id, Description from contact];
         Integer indexHash1 =  -1;
         Integer indexHash2 =  -1;
@@ -33,6 +33,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         //if there is some thing in Description, then it is Uploaded from Inspector.
         Boolean IsFromCase = false;
         Boolean IsFromBulkUpload = false;
+        Boolean IsFromManual = false;
         for (Transaction__c Txn: TList){
             String UpiTemp = '';
             boolean IsContactTagged = false;
@@ -47,7 +48,9 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
             }
             else if(txn.Description__C.contains('$')){
                 system.debug('Should be from LWC compoenent.');
+                IsFromManual=true;
 
+                txnIdList.add(Txn.Id);
             }
             else{//its from Bulk Upload
                 IsFromBulkUpload=true;
@@ -76,7 +79,7 @@ trigger onTransactionRecCreation on Transaction__c (after insert) {
         update TList;   
         system.debug('onTransactionRecCreation > AFTER > update TList > BEFORE >if(IsFromCase==false)');
 
-        if(IsFromBulkUpload)
+        if(IsFromBulkUpload || IsFromManual)
         {
             system.debug('onTransactionRecCreation > if(IsFromCase==false) >  BEFORE > caseTriggerHelper.getContact(txnIdList);  > txnIdList : '+txnIdList);
 			caseTriggerHelper.getContact(txnIdList);

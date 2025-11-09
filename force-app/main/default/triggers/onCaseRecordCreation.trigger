@@ -38,7 +38,7 @@ trigger onCaseRecordCreation on Case (after insert) {
             system.debug('onCaseRecordCreation | caseTriggerHelper.txnDetails.refNo = '+caseTriggerHelper.txnDetails.refNo);
             system.debug('onCaseRecordCreation | txn.RefNo__c = '+txn.RefNo__c);
             txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;
-            txn.Description__C = c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
+            txn.Description__C = 'Case'+c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
             
             if 		(TxnType == 'Cr') 	txn.Type__c = 'Income';// if its Credited - Checkbox will be Checked!
             else if (TxnType == 'Dt') 	txn.Type__c = 'Expense';
