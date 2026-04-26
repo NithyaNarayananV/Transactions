@@ -226,4 +226,67 @@ public with sharing class caseTriggerHelper {
         txnIdList=INtxnIdList;
         Id jobId = System.enqueueJob(new contactTag(upiIdList, conNameList, txnIdList, ConCondition));
     }
+    public static void caseBeforeInsert(List<Case> newCaseList){
+        
+    }
+    public static void caseAfterInsert(Map<Id, Case> newCaseMap){
+        List<Transaction__C> tList  = new List<Transaction__C>();
+        List<Account> aList         = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
+        List<String> txnIdList      = new List<String>();
+        List<Id> deleteCaseId = new List<Id>();
+        for (Case c : newCaseMap.values()){
+            String mailBody = ''+c.get('Description');
+            String TxnType ='';
+            Decimal AmountValue = 0.0;
+            AmountValue = 0;
+            caseTriggerHelper.fetchMailData(mailBody);
+            TxnType     = caseTriggerHelper.txnDetails.txnType;
+            AmountValue = caseTriggerHelper.txnDetails.amount;
+            Transaction__C txn = new Transaction__C();
+            for (Account a : aList){
+                if(a.Name == caseTriggerHelper.txnDetails.bankAcc){
+                    txn.BankAccount__c = a.Id;
+                    break;
+                }
+            }
+            txn.name = ''+TxnType+' - '+AmountValue +' - '+caseTriggerHelper.txnDetails.contactName;
+            txn.Paid_Date__c = System.today();
+            txn.Rent_Amount__c = AmountValue;
+            txn.UPI_ID__c = caseTriggerHelper.txnDetails.UPIid;    
+            txn.RefNo__c = caseTriggerHelper.txnDetails.refNo; //RefNo;//RefNo__c
+            txn.Payment_Mode__c = caseTriggerHelper.txnDetails.txnMode;
+            txn.Description__C = 'Case'+c.CaseNumber + '#'+caseTriggerHelper.txnDetails.contactName+'#'+caseTriggerHelper.txnDetails.txnMode;
+            if 		(TxnType == 'Cr') 	txn.Type__c = 'Income';// if its Credited - Checkbox will be Checked!
+            else if (TxnType == 'Dt') 	txn.Type__c = 'Expense';
+            else 						txn.Type__c = 'Balance';
+            
+            tList.add(txn);   
+        }
+        Database.SaveResult[] results = Database.insert(tList,false);
+        for (Integer i =0; i<results.size(); i++){
+            if(results[i].isSuccess()){
+                txnIdList.add(tList[i].Id);
+                deleteCaseId.add(newCaseMap.values()[i].Id);
+            }
+            if(!results[i].isSuccess()){
+                System.debug('Failed record : '+tList[i]);
+                txnIdList.add(null);
+                /*
+                newCaseMap.values()[i].status = 'Escalated';
+				newCaseMap.values()[i].Description = ' >>> ' + newCaseMap.values()[i].Description; //End of Error Info
+                for(Database.Error err : results[i].getErrors())
+                    newCaseMap.values()[i].Description = '[ '+ err.getMessage() +' ] '+newCaseMap.values()[i].Description; // Actual Error Info
+				newCaseMap.values()[i].Description = ' <<< Transaction Record Could not be Created. Error Meassage :' + newCaseMap.values()[i].Description; //Start of Error Info
+                    */
+            }
+        }
+		//update newCaseMap.values();
+        caseTriggerHelper.getContact(txnIdList);
+        caseTriggerHelper.deleteCase(deleteCaseId);
+    }
+    @future
+    private static void deleteCase(List<Id> deleteCaseId){
+        List<Case> cList = [Select Id from Case where Id IN :deleteCaseId];
+        delete cList;
+    }
 }
