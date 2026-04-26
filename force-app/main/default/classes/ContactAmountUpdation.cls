@@ -1,43 +1,38 @@
-//public with sharing class ContactAmountUpdation {
- //   public ContactAmountUpdation() {
-
-//    }
-//}
 public class ContactAmountUpdation {
     /*
     This class is to update the Amount fields in the Contact Record.
-    This will be called when a 
-    1. Transcation Record is Created
-  */
+    This will be called when a Transaction Record is Created
+    */
     
-  public static void amountUpdate2Contact(String conId, Decimal income, Decimal outGoing){
-        Contact C = [Select Id, OutGoing__c, Balance__c, InComing__c from contact where id = :ConId LIMIT 1];
-        if(Income==0) // So we need to update outgoing Field in Contact
-        { 
-            if (C.OutGoing__c == null)
-                C.OutGoing__c = OutGoing;
-            else
-                C.OutGoing__c +=OutGoing;
-            C.Balance__c = (C.Balance__c == null) ? -OutGoing : (C.Balance__c - OutGoing);            
-        }   
-        else if(OutGoing==0) // So we need to update Field in Contact
-        {
-            if (C.InComing__c == null)
-                C.InComing__c = Income;
-            else
-                C.InComing__c +=Income;
-            C.Balance__c = (C.Balance__c == null) ? Income : (C.Balance__c + Income);  
-            
+    public static void amountUpdate2Contact(String conId, Decimal income, Decimal outGoing) {
+        if (String.isBlank(conId) || (income == 0 && outGoing == 0)) {
+            return;
         }
-        else
-        {
-            system.debug('Something Wrong | Income or Outgoing should be Zero | Income = '+Income+' | OutGoing = '+outgoing);
-        }
-        update C;
-         system.debug('C updated');
-
         
+        Contact c = [SELECT Id, OutGoing__c, Balance__c, InComing__c FROM Contact WHERE Id = :conId LIMIT 1];
+        
+        if (c == null) {
+            return;
+        }
+        
+        if (income == 0 && outGoing > 0) {
+            // Update outgoing field
+            c.OutGoing__c = (c.OutGoing__c == null) ? outGoing : (c.OutGoing__c + outGoing);
+            c.Balance__c = (c.Balance__c == null) ? -outGoing : (c.Balance__c - outGoing);            
+        } else if (outGoing == 0 && income > 0) {
+            // Update incoming field
+            c.InComing__c = (c.InComing__c == null) ? income : (c.InComing__c + income);
+            c.Balance__c = (c.Balance__c == null) ? income : (c.Balance__c + income);  
+        } else {
+            // Both values set - error condition
+            System.debug('Invalid input: Both income and outgoing are non-zero. Income=' + income + ', OutGoing=' + outGoing);
+            return;
+        }
+        
+        try {
+            update c;
+        } catch (DmlException e) {
+            System.debug('Error updating contact: ' + e.getMessage());
+        }
     }
-
-
 }

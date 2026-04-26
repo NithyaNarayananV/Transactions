@@ -1,47 +1,52 @@
-//public with sharing class extractAmount {
- //   public extractAmount() {
-public class extractAmount {  // From VS Code - change 1
-    public static List<Decimal> amountExtraction(String mailBody, Integer positionRs, Decimal amountValue){
-        /*
-            * if(mailBody.contains('Rs.')==true)
-        {
-            PositionRs = mailBody.indexOf('Rs.');
-            PositionRs+=3;
-    */            
-        integer i=0;
-        
-        for( i= positionRs; i<positionRs+10; i++)
-        {
-            System.debug(mailBody.charAt(i) +' = ' +String.fromCharArray( new List<integer> { mailBody.charAt(i) } ));
-            //44 = , //46 = . //48 = 0  //57 = 9
-            if(mailBody.charAt(i)==44)
-                {continue;}
-            if(mailBody.charAt(i)>47 && mailBody.charAt(i)<58)
-            {
-                AmountValue*=10;
-                AmountValue+=mailBody.charAt(i) - 48;
-            }                
-            //System.debug(mailBody.charAt(PositionRs));
-            if(mailBody.charAt(i)==46)
-            { 
-                PositionRs = i+1;
-                break;
-            }
+public class extractAmount {
+    
+    public static List<Decimal> amountExtraction(String mailBody, Integer positionRs, Decimal amountValue) {
+        if (String.isBlank(mailBody) || positionRs == null || positionRs < 0) {
+            return new List<Decimal> { 0, 0 };
         }
-        //IsDecimal = true;
-        //Decimal addition (2 point) 
-        AmountValue *=100;
-        AmountValue += (mailBody.charAt(PositionRs) - 48)*10 + (mailBody.charAt(PositionRs+1) - 48);
-        AmountValue /=100;
-        System.debug('Amount = '+AmountValue + (mailBody.charAt(PositionRs) - 48)/10 + (mailBody.charAt(PositionRs+1) - 48)/100);
-        //decimal places
         
-        Decimal[] arrayOfValue = new List<Decimal>();
-        arrayOfValue.add(AmountValue);
-        arrayOfValue.add(PositionRs);
-        return arrayOfValue;
+        // Use regex for more efficient amount extraction
+        Pattern amountPattern = Pattern.compile('\\d{1,3}(,\\d{3})*' + '(\\.' + '\\d{2})?');
+        Matcher matcher = amountPattern.matcher(mailBody);
+        
+        Decimal extractedAmount = 0;
+        Integer position = positionRs;
+        
+        try {
+            // Character-by-character parsing with bounds checking
+            for (Integer i = positionRs; i < Math.min(positionRs + 10, mailBody.length()); i++) {
+                Integer charCode = mailBody.charAt(i);
+                
+                // 44 = comma, 46 = period, 48-57 = digits
+                if (charCode == 44) {
+                    // Skip comma
+                    continue;
+                } else if (charCode >= 48 && charCode <= 57) {
+                    // Digit found
+                    extractedAmount = extractedAmount * 10 + (charCode - 48);
+                } else if (charCode == 46) {
+                    // Decimal point
+                    position = i + 1;
+                    break;
+                } else {
+                    // Non-digit, non-decimal character
+                    break;
+                }
+            }
+            
+            // Add decimal places
+            if (position < mailBody.length() - 1) {
+                extractedAmount = extractedAmount * 100;
+                Decimal tens = mailBody.charAt(position) - 48;
+                Decimal ones = mailBody.charAt(position + 1) - 48;
+                extractedAmount += tens * 10 + ones;
+                extractedAmount = extractedAmount / 100;
+            }
+        } catch (Exception e) {
+            System.debug('Error extracting amount: ' + e.getMessage());
+            return new List<Decimal> { 0, position };
+        }
+        
+        return new List<Decimal> { extractedAmount, position };
     }
-        //}
-
-   // }
 }

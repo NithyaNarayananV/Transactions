@@ -1,12 +1,22 @@
 public with sharing class caseTriggerHelper {
-	//public static List<contact> Con;
     public static List<String> upiIdList = new List<String>();
     public static List<String> upiIdListTemp = new List<String>();
     public static List<String> ConCondition = new List<String>();
-    public static List<String> conNameList = new  List<String>();
+    public static List<String> conNameList = new List<String>();
     public static List<Id> txnIdList;
     public static caseTriggerHelper txnDetails;
-    public static List<Account> aList = [SELECT id, Name, AccountNumber FROM Account WHERE AccountNumber != null];
+    
+    private static Map<String, Id> accountNameIdMap;
+    
+    private static Map<String, Id> getAccountNameIdMap() {
+        if (accountNameIdMap == null) {
+            accountNameIdMap = new Map<String, Id>();
+            for (Account a : [SELECT id, Name FROM Account WHERE AccountNumber != null LIMIT 10000]) {
+                accountNameIdMap.put(a.Name, a.Id);
+            }
+        }
+        return accountNameIdMap;
+    }
     
     public String 	mailBodyX 	{ get; set; }
     public String 	desX 		{ get; set; }
@@ -29,42 +39,44 @@ public with sharing class caseTriggerHelper {
     Integer indexHifen5 = -1;// this.desX.indexOf('-',indexHifen4+1); //Before - Reference Number | After - Note Info
 
 
-    public caseTriggerHelper(String mailBodyX){//String upiId,  String contactName, Decimal amount, Date txnDate, String referenceNumber,String txnMode) {
-        this.mailBodyX	= mailBodyX;
-        this.upiId 		= getUPIid(); 	// upiId!=null?upiId:this.upiId;
-        this.amount 	= getAmount();	//amount!=null?amount:this.amount;
-        this.txnDate 	= txnDate!=null?txnDate:this.txnDate;
-        this.txnType	= getTxnType();	//this.txnType;
-        this.refNo		= getRefNum();		//refNo!=null?refNo:this.refNo;
-        this.txnMode 	= getPaymentMode();		//txnMode!=null?txnMode:this.txnMode;
-        if (this.txnType=='Bal')
-            this.contactName = 'Balance Enquiry';
-        else
-            this.contactName = this.contactName !=null? this.contactName : getContactName() ; 	//contactName!=null?contactName:this.contactName;
-        this.bankAcc	= getBankAccount();
-        upiIdList.add(this.upiId);
-        upiIdListTemp.add(this.UpiTemp);
-        ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
-        System.debug('caseTriggerHelper | Constructor | ConCondition = '+ConCondition);
-        //this.upiId.substring(0,this.upiId.indexOf('@'-1))
-        conNameList.add(this.contactName);
+    public caseTriggerHelper(String mailBodyX) {
+        if (String.isBlank(mailBodyX)) return;
+        
+        this.mailBodyX = mailBodyX;
+        this.upiId = getUPIid();
+        this.amount = getAmount();
+        this.txnType = getTxnType();
+        this.refNo = getRefNum();
+        this.txnMode = getPaymentMode();
+        this.contactName = (this.txnType == 'Bal') ? 'Balance Enquiry' : getContactName();
+        this.bankAcc = getBankAccount();
+        
+        if (String.isNotBlank(this.upiId)) {
+            upiIdList.add(this.upiId);
+            upiIdListTemp.add(this.UpiTemp);
+            ConCondition.add('Upi_Ids__c LIKE \'%' + this.UpiTemp + '%\'');
+            conNameList.add(String.isNotBlank(this.contactName) ? this.contactName : 'Not Found');
+        }
     }
-    public caseTriggerHelper(Transaction__c txn){//String upiId,  String contactName, Decimal amount, Date txnDate, String referenceNumber,String txnMode) {
-        this.desX		= txn.Description__c;
-        this.amount 	= txn.Rent_Amount__c;
-        this.txnDate 	= txn.Paid_Date__c;
-        this.txnType	= txn.Type__c;	//this.txnType;
-        this.refNo		= txn.RefNo__c;		//refNo!=null?refNo:this.refNo;
-        this.bankAcc	= getBankAccount(); //txn.BankAccount__c; // Need to fetch it from the Reference No
-        this.upiId 		= getUPIidDesc(); 	// upiId!=null?upiId:this.upiId;
-        this.txnMode 	= this.txnMode!=null?this.txnMode:getPaymentMode();
-        this.contactName= this.contactName!=null?this.contactName:getContactName(); 	//contactName!=null?contactName:this.contactName;        
-        upiIdList.add(this.UpiId);
-        upiIdListTemp.add(this.UpiTemp);
-
-        ConCondition.add('Upi_Ids__c LIKE \'%'+this.UpiTemp+'%\'');
-        //ConCondition.add('Upi_Ids__c LIKE \'%'+this.upiId.substring(0,this.upiId.indexOf('@')-1)+'%\'');
-        conNameList.add(this.contactName);
+    public caseTriggerHelper(Transaction__c txn) {
+        if (txn == null) return;
+        
+        this.desX = txn.Description__c;
+        this.amount = txn.Rent_Amount__c;
+        this.txnDate = txn.Paid_Date__c;
+        this.txnType = txn.Type__c;
+        this.refNo = txn.RefNo__c;
+        this.bankAcc = getBankAccount();
+        this.upiId = getUPIidDesc();
+        this.txnMode = String.isNotBlank(this.txnMode) ? this.txnMode : getPaymentMode();
+        this.contactName = String.isNotBlank(this.contactName) ? this.contactName : getContactName();
+        
+        if (String.isNotBlank(this.UpiId)) {
+            upiIdList.add(this.UpiId);
+            upiIdListTemp.add(this.UpiTemp);
+            ConCondition.add('Upi_Ids__c LIKE \'%' + this.UpiTemp + '%\'');
+            conNameList.add(String.isNotBlank(this.contactName) ? this.contactName : 'Not Found');
+        }
     }
 
     
@@ -120,26 +132,36 @@ public with sharing class caseTriggerHelper {
         return this.UPIid;
     }
     
-    public string getContactName(){ 
-        if(this.mailBodyX.contains(this.UPIid)==true)
-        {
-            Integer UPIidIndexPosition = this.mailBodyX.indexOf(this.UPIid);
-            Integer ContactNameIndex = UPIidIndexPosition + this.UPIid.length();
-            Integer EndIndexPosition = this.mailBodyX.indexOf(' on ');
-            contactName = this.mailBodyX.substring(ContactNameIndex, EndIndexPosition).trim();
-        }else {
-            contactName = 'Unknown';
+    public String getContactName() { 
+        if (String.isBlank(this.mailBodyX) || String.isBlank(this.UPIid)) {
+            return 'Not Found';
         }
-        System.debug('Extracted Contact Name: ' + contactName);
-        return contactName;
+        
+        try {
+            Integer upiIdIndexPosition = this.mailBodyX.indexOf(this.UPIid);
+            Integer contactNameIndex = upiIdIndexPosition + this.UPIid.length();
+            Integer endIndexPosition = this.mailBodyX.indexOf(' on ');
+            
+            if (endIndexPosition > contactNameIndex && contactNameIndex >= 0) {
+                return this.mailBodyX.substring(contactNameIndex, endIndexPosition).trim();
+            }
+        } catch (Exception e) {
+            return 'Not Found';
+        }
+        return 'Not Found';
     }
-    public string getPaymentMode(){
-        if(this.mailBodyX.contains('Credit Card')==true && this.mailBodyX.contains('UPI')==true)
+    
+    public String getPaymentMode() {
+        if (String.isBlank(this.mailBodyX)) {
+            return 'Other';
+        }
+        if (this.mailBodyX.contains('Credit Card') && this.mailBodyX.contains('UPI')) {
             return 'UPI Credit Card';
-        else if(this.mailBodyX.contains('UPI')==true)
+        } else if (this.mailBodyX.contains('UPI')) {
             return 'UPI';
-        else if(this.mailBodyX.contains('Credit Card')==true)
+        } else if (this.mailBodyX.contains('Credit Card')) {
             return 'Credit Card';
+        }
         return 'Other';
     }
     public Decimal getAmount(){
@@ -181,18 +203,30 @@ public with sharing class caseTriggerHelper {
             return 'Dt';
         return 'Bal';
     }
-    public String getBankAccount(){
-        if (this.refNo.contains('#')) {//Then its from the Bulk Txn Upload;
-            mailBodyX = 'XX'+this.refNo.substring(0,this.refNo.indexOf('#'));
-            this.refNo = this.refNo.substring(this.refNo.indexOf('#')+1,this.refNo.length());
-            return mailBodyX;
+    public String getBankAccount() {
+        if (String.isBlank(this.refNo)) {
+            return 'NA';
         }
-        for(Account a : aList){
-            if(mailBodyX.contains('XX'+a.AccountNumber)==true || mailBodyX.contains('**'+a.AccountNumber)==true || mailBodyX.contains(' '+a.AccountNumber+' ')==true ){
-                return 'XX'+a.AccountNumber;
+        
+        if (this.refNo.contains('#')) {
+            try {
+                Integer hashIndex = this.refNo.indexOf('#');
+                String bankAccount = 'XX' + this.refNo.substring(0, hashIndex);
+                this.refNo = this.refNo.substring(hashIndex + 1, this.refNo.length());
+                return bankAccount;
+            } catch (Exception e) {
+                return 'NA';
             }
         }
-        return '000000';
+        
+        // Search in account map for matching account
+        Map<String, Id> accountMap = getAccountNameIdMap();
+        for (String accountName : accountMap.keySet()) {
+            if (String.isNotBlank(this.mailBodyX) && this.mailBodyX.contains(accountName)) {
+                return accountName;
+            }
+        }
+        return 'NA';
     }
     
     // Wrapper class to hold parsed UPI transaction details
