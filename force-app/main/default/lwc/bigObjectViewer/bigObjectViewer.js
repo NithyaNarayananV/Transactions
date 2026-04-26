@@ -97,7 +97,7 @@ export default class bigObjectViewer extends LightningElement {
 			this.filterBy ='Type__c';
 			console.log('Inside else Both part : selectedTransactionType ,  event = ',this.selectedTransactionType, event);
 			//event.target.value = selectedTransactionType ;
-			this.filterTable(selectedTransactionType)
+			this.filterTable(this.selectedTransactionType)
 		}
 	}
 	filterbyHandler(event){

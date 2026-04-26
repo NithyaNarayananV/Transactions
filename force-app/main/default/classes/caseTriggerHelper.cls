@@ -6,6 +6,7 @@ public with sharing class caseTriggerHelper {
     public static List<String> conNameList = new  List<String>();
     public static List<Id> txnIdList;
     public static caseTriggerHelper txnDetails;
+    public static List<Account> aList = [SELECT id, Name, AccountNumber FROM Account WHERE AccountNumber != null];
     
     public String 	mailBodyX 	{ get; set; }
     public String 	desX 		{ get; set; }
@@ -90,13 +91,6 @@ public with sharing class caseTriggerHelper {
                 this.contactName = this.desX.substring(indexHifen1+1, indexHifen2);                
                 this.UPIid = this.desX.substring(indexHifen2+1,indexHifen3);               
                 this.UpiTemp = this.desX.substring(indexHifen2+1,indexAt);
-                //if(UpiTemp[-2]=='-')
-                //    UpiTemp = UpiTemp.substring(0,UpiTemp.length()-2);
-                //update Txn;
-                system.debug('Txn Updated');
-				system.debug('caseTriggerHelper | getUPIidDesc | this.contactName = '+this.contactName);
-                system.debug('caseTriggerHelper | getUPIidDesc | UPIid = '+UPIid);
-                system.debug('caseTriggerHelper | getUPIidDesc | this.txnMode = '+this.txnMode);
             }else if(this.desX.contains('INTEREST PAID')){
                 this.txnMode = 'Other';
                 this.contactName = 'INTEREST PAID';
@@ -184,29 +178,20 @@ public with sharing class caseTriggerHelper {
         if(this.mailBodyX.contains('credited'))
             return 'Cr';
         else if (this.mailBodyX.contains('debited'))
-            return 'Dt';              
+            return 'Dt';
         return 'Bal';
     }
     public String getBankAccount(){
-        String A90 = '0690';
-        String A86 = '1686';
-		String A87 = '9987';
-        system.debug('class : caseTriggerHelper | getBankAccount | this.refNo : '+this.refNo);
-        system.debug('class : caseTriggerHelper | getBankAccount | mailBodyX : '+this.mailBodyX);
-        if (this.refNo.contains('#'))//Then its from the Bulk Txn Upload;
-        {
+        if (this.refNo.contains('#')) {//Then its from the Bulk Txn Upload;
             mailBodyX = 'XX'+this.refNo.substring(0,this.refNo.indexOf('#'));
-            System.debug('class : caseTriggerHelper | getBankAccount | mailBodyX after modification : '+this.mailBodyX);
             this.refNo = this.refNo.substring(this.refNo.indexOf('#')+1,this.refNo.length());
             return mailBodyX;
         }
-        if		(mailBodyX.contains('XX'+A90)==true || mailBodyX.contains('**'+A90)==true || mailBodyX.contains(' '+A90+' ')==true )
-            return 'XX0690';
-        else if	(mailBodyX.contains('XX'+A86)==true || mailBodyX.contains('**'+A86)==true || mailBodyX.contains(' '+A86+' ')==true )
-            return 'XX1686';  
-        else if	(mailBodyX.contains('XX'+A87)==true || mailBodyX.contains('**'+A87)==true || mailBodyX.contains(' '+A87+' ')==true )
-            return 'XX9987'; 
-        //XX9987 
+        for(Account a : aList){
+            if(mailBodyX.contains('XX'+a.AccountNumber)==true || mailBodyX.contains('**'+a.AccountNumber)==true || mailBodyX.contains(' '+a.AccountNumber+' ')==true ){
+                return 'XX'+a.AccountNumber;
+            }
+        }
         return '000000';
     }
     
@@ -231,7 +216,7 @@ public with sharing class caseTriggerHelper {
     }
     public static void caseAfterInsert(Map<Id, Case> newCaseMap){
         List<Transaction__C> tList  = new List<Transaction__C>();
-        List<Account> aList         = [Select id, Name from Account where AccountNumber in ('XX0690','XX1686','XX9987')];
+        List<Account> aList         = [Select id, Name from Account where AccountNumber != null];
         List<String> txnIdList      = new List<String>();
         List<Id> deleteCaseId = new List<Id>();
         for (Case c : newCaseMap.values()){
@@ -271,13 +256,6 @@ public with sharing class caseTriggerHelper {
             if(!results[i].isSuccess()){
                 System.debug('Failed record : '+tList[i]);
                 txnIdList.add(null);
-                /*
-                newCaseMap.values()[i].status = 'Escalated';
-				newCaseMap.values()[i].Description = ' >>> ' + newCaseMap.values()[i].Description; //End of Error Info
-                for(Database.Error err : results[i].getErrors())
-                    newCaseMap.values()[i].Description = '[ '+ err.getMessage() +' ] '+newCaseMap.values()[i].Description; // Actual Error Info
-				newCaseMap.values()[i].Description = ' <<< Transaction Record Could not be Created. Error Meassage :' + newCaseMap.values()[i].Description; //Start of Error Info
-                    */
             }
         }
 		//update newCaseMap.values();
